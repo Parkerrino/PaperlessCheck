@@ -77,12 +77,10 @@ jobs:
 
     - name: Run DB init test
       run: |
-        docker run --rm -v $(pwd)/database:/docker-entrypoint-initdb.d \
-          --network=host postgres:16 sleep 5
-        docker-compose up -d db backend
-        sleep 20  # Wait init
-        docker-compose exec db psql -U paperless -d paperlesscheck -c "SELECT COUNT(*) FROM checklists;"
+        docker compose up -d db
+        docker compose up backend --wait
+        docker compose exec db psql -U paperless -d paperlesscheck -c "SELECT COUNT(*) FROM checklists;"
         curl -f http://localhost:5000/health || curl -f http://localhost:127.0.0.1:5000/health
-        docker-compose down
+        docker compose down
 
 
