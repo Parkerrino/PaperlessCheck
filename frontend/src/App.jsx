@@ -109,6 +109,7 @@ function App() {
       
       setNewItemTitle('')
       await fetchChecklistDetail(selectedChecklist.id)
+      await fetchChecklists()
     } catch (err) {
       setError(err.message)
     }
@@ -132,6 +133,7 @@ function App() {
       if (!response.ok) throw new Error('Failed to update item')
       
       await fetchChecklistDetail(selectedChecklist.id)
+      await fetchChecklists()
     } catch (err) {
       setError(err.message)
     }
@@ -148,6 +150,7 @@ function App() {
       if (!response.ok) throw new Error('Failed to delete item')
       
       await fetchChecklistDetail(selectedChecklist.id)
+      await fetchChecklists()
     } catch (err) {
       setError(err.message)
     }
