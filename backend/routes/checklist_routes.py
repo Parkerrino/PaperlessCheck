@@ -25,7 +25,7 @@ def health():
         conn = get_db_connection()
         conn.close()
         return jsonify({'status': 'healthy', 'database': 'connected'}), 200
-    except:
+    except Exception:
         return jsonify({'status': 'unhealthy', 'database': 'disconnected'}), 500
 
 

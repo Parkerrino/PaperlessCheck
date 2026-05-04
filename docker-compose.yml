@@ -32,8 +32,6 @@ services:
       - POSTGRES_USER=paperless
       - POSTGRES_PASSWORD=paperless
       - POSTGRES_DB=paperlesscheck
-    ports:
-      - "5432:5432"
     volumes:
       - paperlesscheck_db_data:/var/lib/postgresql/data
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql

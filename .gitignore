@@ -50,6 +50,7 @@ postgres_data/
 
 # Docker
 docker-compose.override.yml
+TODO.md
 
 # OS
 .DS_Store
