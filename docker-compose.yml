@@ -1,0 +1,42 @@
+services:
+  backend:
+    build: ./backend
+    container_name: paperlesscheck-backend
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgresql://paperless:paperless@db:5432/paperlesscheck
+      - FLASK_ENV=development
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  frontend:
+    build: ./frontend
+    container_name: paperlesscheck-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+  db:
+    image: postgres:16
+    container_name: paperlesscheck-db
+    environment:
+      - POSTGRES_USER=paperless
+      - POSTGRES_PASSWORD=paperless
+      - POSTGRES_DB=paperlesscheck
+    ports:
+      - "5432:5432"
+    volumes:
+      - paperlesscheck_db_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  paperlesscheck_db_data:
