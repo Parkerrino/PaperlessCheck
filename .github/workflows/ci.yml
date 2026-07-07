@@ -6,8 +6,6 @@ on:
     branches:
       - main
       - develop
-    # zusätzlich: schneller Build auf main/develop (ohne Tags)
-
 
 jobs:
   backend:
@@ -48,20 +46,17 @@ jobs:
 
       - name: Lint (ruff)
         working-directory: backend
-        run: |
-          ruff check .
+        run: ruff check .
 
       - name: Format check (black)
         working-directory: backend
-        run: |
-          black --check .
+        run: black --check .
 
       - name: Prepare database schema
         working-directory: backend
         env:
           DATABASE_URL: postgresql://paperless:paperless@localhost:5432/paperlesscheck
         run: |
-          python -c "import os; print('Using DB:', os.environ['DATABASE_URL'])"
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 < ../database/init.sql
 
       - name: Run tests (pytest)
@@ -69,8 +64,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://paperless:paperless@localhost:5432/paperlesscheck
           FLASK_ENV: test
-        run: |
-          pytest -q
+        run: pytest -q
 
   frontend:
     runs-on: ubuntu-latest
@@ -83,15 +77,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm ci
-
-      - name: Lint / Type check (none configured)
-        working-directory: frontend
-        run: echo "No frontend linter configured; running build instead."
+        run: npm install
 
       - name: Build frontend
         working-directory: frontend
