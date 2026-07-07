@@ -1,84 +1,99 @@
 name: CI
 
 on:
-  push:
-    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+  push:
+    branches:
+      - main
+      - develop
+    # zusätzlich: schneller Build auf main/develop (ohne Tags)
+
 
 jobs:
-  lint-test:
+  backend:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.12]
-        node-version: [20]
+        python-version: ['3.12']
 
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v5
-      with:
-        python-version: ${{ matrix.python-version }}
-
-    - name: Cache pip
-      uses: actions/cache@v4
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r backend/requirements.txt
-
-    - name: Lint backend (ruff)
-      run: ruff check backend/
-
-    - name: Format check (black)
-      run: black --check backend/
-
-    - name: Test backend with pytest
-      run: pytest backend/tests/ -v
-
-    - name: Set up Node ${{ matrix.node-version }}
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ matrix.node-version }}
-        cache: 'npm'
-        cache-dependency-path: frontend/package.json
-
-    - name: Frontend build
-      working-directory: ./frontend
-      run: |
-        npm install
-        npm run build --if-present
-
-  integration:
-    runs-on: ubuntu-latest
     services:
-      postgres:
+      db:
         image: postgres:16
         env:
-          POSTGRES_PASSWORD: paperless
           POSTGRES_USER: paperless
+          POSTGRES_PASSWORD: paperless
           POSTGRES_DB: paperlesscheck
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
         ports:
           - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U paperless -d paperlesscheck"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Run DB init test
-      run: |
-        docker compose up -d db
-        docker compose up backend --wait
-        docker compose exec db psql -U paperless -d paperlesscheck -c "SELECT COUNT(*) FROM checklists;"
-        curl -f http://localhost:5000/health || curl -f http://localhost:127.0.0.1:5000/health
-        docker compose down
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Lint (ruff)
+        working-directory: backend
+        run: |
+          ruff check .
+
+      - name: Format check (black)
+        working-directory: backend
+        run: |
+          black --check .
+
+      - name: Prepare database schema
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://paperless:paperless@localhost:5432/paperlesscheck
+        run: |
+          python -c "import os; print('Using DB:', os.environ['DATABASE_URL'])"
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 < ../database/init.sql
+
+      - name: Run tests (pytest)
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://paperless:paperless@localhost:5432/paperlesscheck
+          FLASK_ENV: test
+        run: |
+          pytest -q
+
+  frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Lint / Type check (none configured)
+        working-directory: frontend
+        run: echo "No frontend linter configured; running build instead."
+
+      - name: Build frontend
+        working-directory: frontend
+        run: npm run build
+
