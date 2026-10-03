@@ -1,18 +1,75 @@
 version: 2
+
 updates:
+  # Python-Backend
   - package-ecosystem: "pip"
     directory: "/backend"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+      day: "monday"
+      time: "07:00"
+      timezone: "Europe/Berlin"
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
     labels:
       - "dependencies"
+      - "backend"
+    open-pull-requests-limit: 5
 
+  # npm-Frontend
   - package-ecosystem: "npm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
+      day: "monday"
+      time: "07:15"
+      timezone: "Europe/Berlin"
+    groups:
+      frontend-dependencies:
+        patterns:
+          - "*"
     labels:
       - "dependencies"
+      - "frontend"
+    open-pull-requests-limit: 5
 
+  # Docker-Basisimages
+  - package-ecosystem: "docker"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:30"
+      timezone: "Europe/Berlin"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:30"
+      timezone: "Europe/Berlin"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # Actions in .github/workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "07:45"
+      timezone: "Europe/Berlin"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    labels:
+      - "dependencies"
+      - "github-actions"
