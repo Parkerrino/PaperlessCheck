@@ -337,19 +337,39 @@ kill -9 <PID>
 ✅ Health check endpoint
 ✅ Input validation
 
-## Future Enhancements
+## Roadmap
 
-🔮 Planned Features
-- User authentication & authorization
-- Checklist sharing and collaboration
-- Due dates and reminders
-- Categories/tags for checklists
-- Search functionality
-- Dark mode
-- Mobile app
-- Export to PDF/Excel
-- Recurring checklists
-- Templates library
+The roadmap is organized by implementation priority and feature dependencies. It
+does not imply release dates.
+
+### 1. Foundation and reliability
+- [ ] Unit, integration, and end-to-end tests
+- [ ] Logging system and enhanced error messages
+- [ ] Input sanitization, SQL injection prevention, and XSS protection
+- [ ] CSRF protection, security headers, and HTTPS enforcement
+- [ ] API rate limiting and dependency vulnerability scanning
+- [ ] Database query optimization and performance monitoring
+- [ ] Caching layer (Redis)
+
+### 2. Personal productivity
+- [ ] Search functionality
+- [ ] Categories and tags for checklists
+- [ ] Due dates and reminders
+- [ ] Recurring checklists
+- [ ] Templates library
+- [ ] Export to PDF and Excel
+- [ ] Dark mode
+
+### 3. Accounts and collaboration
+- [ ] User authentication and authorization
+- [ ] Checklist sharing and collaboration
+- [ ] Comments on items
+- [ ] Activity logging
+- [ ] Email notifications
+
+### 4. Integrations and platforms
+- [ ] Webhook support
+- [ ] Native mobile apps
 
 ## Testing
 

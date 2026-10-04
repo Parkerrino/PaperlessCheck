@@ -59,42 +59,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Planned Features
-- [ ] User authentication and authorization
-- [ ] Checklist sharing and collaboration
-- [ ] Due dates and reminders
-- [ ] Categories/tags for organization
+The planned work is grouped by implementation priority; no release dates are
+implied. See the [project roadmap](README.md#roadmap) for descriptions.
+
+### Foundation and reliability
+- [ ] Unit, integration, and end-to-end tests
+- [ ] Logging system and enhanced error messages
+- [ ] Input sanitization, SQL injection prevention, and XSS protection
+- [ ] CSRF protection, security headers, and HTTPS enforcement
+- [ ] API rate limiting and dependency vulnerability scanning
+- [ ] Database query optimization and performance monitoring
+- [ ] Caching layer (Redis)
+
+### Personal productivity
 - [ ] Search functionality
-- [ ] Dark mode
-- [ ] Mobile native apps
-- [ ] Export to PDF/Excel
+- [ ] Categories and tags for checklists
+- [ ] Due dates and reminders
 - [ ] Recurring checklists
 - [ ] Templates library
-- [ ] Activity logging
+- [ ] Export to PDF and Excel
+- [ ] Dark mode
+
+### Accounts and collaboration
+- [ ] User authentication and authorization
+- [ ] Checklist sharing and collaboration
 - [ ] Comments on items
+- [ ] Activity logging
 - [ ] Email notifications
+
+### Integrations and platforms
 - [ ] Webhook support
-- [ ] API rate limiting
-
-### Improvements
-- [ ] Database query optimization
-- [ ] Caching layer (Redis)
-- [ ] Performance monitoring
-- [ ] Enhanced error messages
-- [ ] Logging system
-- [ ] Unit tests
-- [ ] Integration tests
-- [ ] E2E tests
-
-### Security
-- [ ] HTTPS enforcement
-- [ ] Rate limiting
-- [ ] Input sanitization
-- [ ] CSRF protection
-- [ ] SQL injection prevention
-- [ ] XSS protection
-- [ ] Security headers
-- [ ] Dependency vulnerability scanning
+- [ ] Native mobile apps
 
 ---
 
