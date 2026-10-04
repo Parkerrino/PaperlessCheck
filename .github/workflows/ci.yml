@@ -48,7 +48,7 @@ jobs:
       - name: Lint check (ruff)
         working-directory: backend
         run: |
-          pip install -- upgrade ruff
+          pip install --upgrade ruff
           ruff check . --fix
 
       - name: Format check (black)
