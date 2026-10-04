@@ -43,10 +43,13 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      
 
-      - name: Lint (ruff)
+      - name: Lint check (ruff)
         working-directory: backend
-        run: ruff check .
+        run: |
+          pip install -- upgrade ruff
+          ruff check . --fix
 
       - name: Format check (black)
         working-directory: backend
