@@ -11,7 +11,7 @@ CORS(app)
 # Register blueprints
 app.register_blueprint(checklist_bp, url_prefix="/api/checklists")
 
-
+#test
 @app.route("/health", methods=["GET"])
 def health():
     """Health check endpoint for Docker."""
