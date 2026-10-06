@@ -1,9 +1,9 @@
 """Validation service for checklist operations."""
 
-from typing import Any, Dict, List
+from typing import Any
 
 
-def _validate_title(data: Dict[str, Any], errors: List[str]) -> None:
+def _validate_title(data: dict[str, Any], errors: list[str]) -> None:
     """Append title validation errors to ``errors`` in place."""
     title = data.get("title")
 
@@ -13,9 +13,9 @@ def _validate_title(data: Dict[str, Any], errors: List[str]) -> None:
         errors.append("Title must not exceed 255 characters")
 
 
-def validate_checklist_data(data: Dict[str, Any]) -> List[str]:
+def validate_checklist_data(data: dict[str, Any]) -> list[str]:
     """Validate checklist creation/update data."""
-    errors: List[str] = []
+    errors: list[str] = []
 
     _validate_title(data, errors)
 
@@ -25,9 +25,9 @@ def validate_checklist_data(data: Dict[str, Any]) -> List[str]:
     return errors
 
 
-def validate_checklist_item_data(data: Dict[str, Any]) -> List[str]:
+def validate_checklist_item_data(data: dict[str, Any]) -> list[str]:
     """Validate checklist item creation/update data."""
-    errors: List[str] = []
+    errors: list[str] = []
 
     _validate_title(data, errors)
 

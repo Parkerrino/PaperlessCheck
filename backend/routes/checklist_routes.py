@@ -1,13 +1,14 @@
 """Routes for checklist management API."""
 
 import logging
-from contextlib import contextmanager
-from typing import Any, Iterator, Tuple
-
-from flask import Blueprint, request, jsonify, Response
-import psycopg2
-from psycopg2.extras import RealDictCursor
 import os
+from collections.abc import Iterator
+from contextlib import contextmanager
+from typing import Any
+
+import psycopg2
+from flask import Blueprint, Response, jsonify, request
+from psycopg2.extras import RealDictCursor
 from services.validation_service import (
     validate_checklist_data,
     validate_checklist_item_data,
@@ -22,7 +23,7 @@ class DatabaseError(Exception):
     """Raised when a database connection or query fails."""
 
 
-def _server_error() -> Tuple[Response, int]:
+def _server_error() -> tuple[Response, int]:
     """Return a generic 500 response without leaking internal details."""
     return jsonify({"error": "Internal server error"}), 500
 
@@ -64,7 +65,7 @@ def db_cursor(commit: bool = False) -> Iterator[Any]:
 
 
 @checklist_bp.route("/health", methods=["GET"])
-def health() -> Tuple[Response, int]:
+def health() -> tuple[Response, int]:
     """Health check endpoint."""
     try:
         conn = get_db_connection()
@@ -76,7 +77,7 @@ def health() -> Tuple[Response, int]:
 
 
 @checklist_bp.route("", methods=["GET"])
-def get_checklists() -> Tuple[Response, int]:
+def get_checklists() -> tuple[Response, int]:
     """Get all checklists with their items (single grouped query)."""
     try:
         with db_cursor() as cur:
@@ -104,7 +105,7 @@ def get_checklists() -> Tuple[Response, int]:
 
 
 @checklist_bp.route("/<int:checklist_id>", methods=["GET"])
-def get_checklist(checklist_id: int) -> Tuple[Response, int]:
+def get_checklist(checklist_id: int) -> tuple[Response, int]:
     """Get a specific checklist with items."""
     try:
         with db_cursor() as cur:
@@ -128,7 +129,7 @@ def get_checklist(checklist_id: int) -> Tuple[Response, int]:
 
 
 @checklist_bp.route("", methods=["POST"])
-def create_checklist() -> Tuple[Response, int]:
+def create_checklist() -> tuple[Response, int]:
     """Create a new checklist."""
     try:
         data = _json_body()
@@ -152,7 +153,7 @@ def create_checklist() -> Tuple[Response, int]:
 
 
 @checklist_bp.route("/<int:checklist_id>", methods=["PUT"])
-def update_checklist(checklist_id: int) -> Tuple[Response, int]:
+def update_checklist(checklist_id: int) -> tuple[Response, int]:
     """Update a checklist."""
     try:
         data = _json_body()
@@ -179,7 +180,7 @@ def update_checklist(checklist_id: int) -> Tuple[Response, int]:
 
 
 @checklist_bp.route("/<int:checklist_id>", methods=["DELETE"])
-def delete_checklist(checklist_id: int) -> Tuple[Response, int]:
+def delete_checklist(checklist_id: int) -> tuple[Response, int]:
     """Delete a checklist."""
     try:
         with db_cursor(commit=True) as cur:
@@ -195,7 +196,7 @@ def delete_checklist(checklist_id: int) -> Tuple[Response, int]:
 
 
 @checklist_bp.route("/<int:checklist_id>/items", methods=["POST"])
-def add_item(checklist_id: int) -> Tuple[Response, int]:
+def add_item(checklist_id: int) -> tuple[Response, int]:
     """Add an item to a checklist."""
     try:
         data = _json_body()
@@ -223,7 +224,7 @@ def add_item(checklist_id: int) -> Tuple[Response, int]:
 
 
 @checklist_bp.route("/items/<int:item_id>", methods=["PUT"])
-def update_item(item_id: int) -> Tuple[Response, int]:
+def update_item(item_id: int) -> tuple[Response, int]:
     """Update a checklist item."""
     try:
         data = _json_body()
@@ -256,7 +257,7 @@ def update_item(item_id: int) -> Tuple[Response, int]:
 
 
 @checklist_bp.route("/items/<int:item_id>", methods=["DELETE"])
-def delete_item(item_id: int) -> Tuple[Response, int]:
+def delete_item(item_id: int) -> tuple[Response, int]:
     """Delete a checklist item."""
     try:
         with db_cursor(commit=True) as cur:
