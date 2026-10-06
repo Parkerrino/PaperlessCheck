@@ -52,7 +52,7 @@ jobs:
         working-directory: backend
         run: |
           pip install --upgrade ruff
-          ruff check . --fix
+          ruff check .
 
       - name: Format check (black)
         working-directory: backend
@@ -86,7 +86,7 @@ jobs:
 
       - name: Install frontend dependencies
         working-directory: frontend
-        run: npm install
+        run: npm ci
 
       - name: Build frontend
         working-directory: frontend
