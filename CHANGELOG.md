@@ -5,6 +5,25 @@ All notable changes to PaperlessCheck will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2026-10-06
+
+### Added
+- PostgreSQL integration test covering checklist creation, item creation,
+  completion persistence, and cascading deletion.
+- Frontend dependency lockfile for reproducible installations.
+- Docker ignore rules excluding local `node_modules` and `dist`.
+
+### Changed
+- Frontend CI and Docker builds now use `npm ci`.
+- CI lint checks report violations without modifying source files.
+- Security policy now documents supported releases and private
+  vulnerability reporting.
+
+### Fixed
+- Backend lint violations and import formatting.
+- Test fixtures now provide the Flask application and test client separately,
+  ensuring compatibility with pytest-flask.
+  
 ## [1.0.0] - 2026-05-04
 
 ### Added - MVP Release
