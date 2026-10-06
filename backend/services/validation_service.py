@@ -4,37 +4,41 @@ from typing import Any
 
 
 def _validate_title(data: dict[str, Any], errors: list[str]) -> None:
-    """Append title validation errors to ``errors`` in place."""
+    """Append title validation errors."""
     title = data.get("title")
 
-    if not title or not isinstance(title, str):
-        errors.append("Title is required and must be a string")
+    if not isinstance(title, str) or not title.strip():
+        errors.append("Title is required and must be a non-empty string")
     elif len(title) > 255:
         errors.append("Title must not exceed 255 characters")
 
 
-def validate_checklist_data(data: dict[str, Any]) -> list[str]:
+def validate_checklist_data(data: Any) -> list[str]:
     """Validate checklist creation/update data."""
-    errors: list[str] = []
+    if not isinstance(data, dict):
+        return ["Request body must be a JSON object"]
 
+    errors: list[str] = []
     _validate_title(data, errors)
 
-    if data.get("description") and not isinstance(data.get("description"), str):
+    if data.get("description") and not isinstance(data["description"], str):
         errors.append("Description must be a string")
 
     return errors
 
 
-def validate_checklist_item_data(data: dict[str, Any]) -> list[str]:
+def validate_checklist_item_data(data: Any) -> list[str]:
     """Validate checklist item creation/update data."""
-    errors: list[str] = []
+    if not isinstance(data, dict):
+        return ["Request body must be a JSON object"]
 
+    errors: list[str] = []
     _validate_title(data, errors)
 
-    if "completed" in data and not isinstance(data.get("completed"), bool):
+    if "completed" in data and not isinstance(data["completed"], bool):
         errors.append("Completed must be a boolean")
 
-    if "order_index" in data and not isinstance(data.get("order_index"), int):
+    if "order_index" in data and not isinstance(data["order_index"], int):
         errors.append("Order index must be an integer")
 
     return errors

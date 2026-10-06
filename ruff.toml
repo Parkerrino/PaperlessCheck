@@ -1,0 +1,2 @@
+[lint.isort]
+known-first-party = ["backend", "routes", "services", "data"]
