@@ -1,11 +1,8 @@
 from uuid import uuid4
 
-from backend import app
-
 
 def test_checklist_lifecycle(client):
-    # Verify the checklist lifecycle against a real database.
-    client = app
+    """Verify the checklist lifecycle against a real database."""
     base = "/api/checklists"
     title = f"Integration Test {uuid4()}"
 
