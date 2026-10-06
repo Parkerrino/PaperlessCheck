@@ -1,5 +1,3 @@
-"""Routes for checklist management API."""
-
 import logging
 import os
 from collections.abc import Iterator
@@ -9,6 +7,7 @@ from typing import Any
 import psycopg2
 from flask import Blueprint, Response, jsonify, request
 from psycopg2.extras import RealDictCursor
+
 from services.validation_service import (
     validate_checklist_data,
     validate_checklist_item_data,
