@@ -1,20 +1,24 @@
 import os
 import sys
+from unittest.mock import MagicMock, patch
+
 import pytest
-from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 @pytest.fixture
 def app():
-    from backend.app import app
+    from backend.app import app as flask_app
 
-    app.config.update(
-        {
-            "TESTING": True,
-        }
-    )
+    previous_testing = flask_app.config["TESTING"]
+    flask_app.config["TESTING"] = True
+    yield flask_app
+    flask_app.config["TESTING"] = previous_testing
+
+
+@pytest.fixture
+def client(app):
     with app.test_client() as test_client:
         yield test_client
 

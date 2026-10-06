@@ -1,7 +1,9 @@
+import os
+
 from flask import Flask, jsonify
 from flask_cors import CORS
+
 from routes.checklist_routes import checklist_bp
-import os
 
 app = Flask(__name__)
 
