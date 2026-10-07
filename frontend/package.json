@@ -1,6 +1,6 @@
 {
   "name": "paperlesscheck-frontend",
-  "version": "1.0.1",
+  "version": "1.2.0",
   "description": "Frontend for PaperlessCheck application",
   "main": "index.js",
   "scripts": {
