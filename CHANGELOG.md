@@ -1,151 +1,141 @@
 # Changelog
 
-All notable changes to PaperlessCheck will be documented in this file.
+All notable changes to PaperlessCheck are documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Version numbers follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - 2026-10-06
-
-### Added
-- PostgreSQL integration test covering checklist creation, item creation,
-  completion persistence, and cascading deletion.
-- Frontend dependency lockfile for reproducible installations.
-- Docker ignore rules excluding local `node_modules` and `dist`.
-
-### Changed
-- Frontend CI and Docker builds now use `npm ci`.
-- CI lint checks report violations without modifying source files.
-- Security policy now documents supported releases and private
-  vulnerability reporting.
-
-### Fixed
-- Backend lint violations and import formatting.
-- Test fixtures now provide the Flask application and test client separately,
-  ensuring compatibility with pytest-flask.
-  
-## [1.0.0] - 2026-05-04
-
-### Added - MVP Release
-
-#### Backend Features
-- ✅ Flask REST API with PostgreSQL integration
-- ✅ Complete CRUD operations for checklists
-- ✅ Complete CRUD operations for checklist items
-- ✅ Input validation service
-- ✅ Health check endpoint for Docker
-- ✅ CORS support for cross-origin requests
-- ✅ Docker containerization
-- ✅ Comprehensive error handling
-
-#### Frontend Features
-- ✅ React-based user interface with Vite
-- ✅ Create and manage multiple checklists
-- ✅ Add, edit, and delete checklist items
-- ✅ Check/uncheck items with completion tracking
-- ✅ Progress visualization (completed items count)
-- ✅ Responsive design for desktop and mobile
-- ✅ Real-time UI updates
-- ✅ Error notifications
-
-#### Database
-- ✅ PostgreSQL database with automated schema
-- ✅ Sample data for testing
-- ✅ Cascade delete for data integrity
-- ✅ Timestamps for audit trail
-
-#### DevOps
-- ✅ Docker Compose orchestration
-- ✅ Multi-container setup (backend, frontend, database, nginx)
-- ✅ Health checks for service monitoring
-- ✅ Environment-based configuration
-
-#### Documentation
-- ✅ Comprehensive README.md
-- ✅ API Documentation
-- ✅ Setup instructions (Docker & development)
-- ✅ Deployment guide
-- ✅ Contributing guidelines
-- ✅ Technology stack documentation
-
-### Infrastructure
-- Flask 3.0.0
-- React 18.2.0
-- Vite 5.2.8
-- PostgreSQL 16
-- Docker & Docker Compose
-- Nginx for reverse proxy
+This changelog records implemented changes. Planned features are tracked in
+the [project roadmap](README.md#roadmap).
 
 ## [Unreleased]
 
-The planned work is grouped by implementation priority; no release dates are
-implied. See the [project roadmap](README.md#roadmap) for descriptions.
+### Added
 
-### Foundation and reliability
-- [ ] Unit, integration, and end-to-end tests
-- [ ] Logging system and enhanced error messages
-- [ ] Input sanitization, SQL injection prevention, and XSS protection
-- [ ] CSRF protection, security headers, and HTTPS enforcement
-- [ ] API rate limiting and dependency vulnerability scanning
-- [ ] Database query optimization and performance monitoring
-- [ ] Caching layer (Redis)
+- Checklist search by title and description.
+- Case-insensitive search with leading and trailing whitespace ignored.
+- A "No checklists found" message when no entries match the search.
+- Seven automated search tests covering title matches, description matches,
+  case handling, surrounding whitespace, empty queries, missing matches,
+  and missing or null descriptions.
+- Vitest as the frontend test runner, available through `npm test`.
+- Frontend test execution in CI before the production build.
+- Six API validation tests covering missing, empty, whitespace-only, and
+  numeric titles, JSON arrays, and malformed JSON.
+- Fifteen API validation tests for invalid description types and item
+  positions, verifying rejection before database access.
+- Seven validator tests confirming that valid descriptions and item
+  positions remain accepted.
 
-### Personal productivity
-- [ ] Search functionality
-- [ ] Categories and tags for checklists
-- [ ] Due dates and reminders
-- [ ] Recurring checklists
-- [ ] Templates library
-- [ ] Export to PDF and Excel
-- [ ] Dark mode
+### Changed
 
-### Accounts and collaboration
-- [ ] User authentication and authorization
-- [ ] Checklist sharing and collaboration
-- [ ] Comments on items
-- [ ] Activity logging
-- [ ] Email notifications
+- Extracted checklist filtering from `App.jsx` into
+  `frontend/src/utils/filterChecklists.js`.
+- Pinned Ruff to version `0.16.10`.
+- Removed the additional Ruff upgrade from CI to use the version declared
+  in backend requirements.
+- Explicitly configured first-party imports in `ruff.toml` for consistent
+  import classification.
 
-### Integrations and platforms
-- [ ] Webhook support
-- [ ] Native mobile apps
+### Fixed
 
----
+- Reject whitespace-only checklist and item titles.
+- Reject non-object JSON payloads in checklist and item validators before
+  accessing object fields.
+- Reject explicitly supplied non-string descriptions, including numbers,
+  booleans, arrays, objects, and null.
+- Reject negative item positions.
+- Reject boolean item positions instead of treating them as integers.
+- Preserve support for omitted or empty string descriptions and omitted
+  or non-negative integer item positions.
+- Renamed the Vite configuration to `vite.config.mjs` to explicitly use
+  the ES module format.
 
-## Legend
+## [1.1.1] - 2026-10-06
 
-### Categories
-- **Added** - New features
-- **Changed** - Changes in existing functionality
-- **Deprecated** - Soon-to-be removed features
-- **Removed** - Removed features
-- **Fixed** - Bug fixes
-- **Security** - Security-related changes
+### Added
 
-### Icons
-- ✅ Implemented and tested
-- 🔄 In progress
-- 📋 Planned
-- ⚠️ Deprecated
-- 🐛 Bug fix
+- PostgreSQL integration test covering checklist creation, item creation,
+  completion persistence, checklist deletion, and cascading item deletion.
+- Frontend dependency lockfile for reproducible dependency installations.
+- Docker ignore rules excluding local `node_modules` and `dist` directories
+  from the frontend build context.
 
----
+### Changed
 
-## How to Contribute Changes
+- Frontend CI and Docker builds now install dependencies with `npm ci`.
+- CI lint checks report violations without modifying source files.
+- Updated `python-dotenv` to `1.2.4`.
+- Updated GitHub Actions dependencies.
 
-1. Create a branch from `main`
-2. Make your changes
-3. Test thoroughly
-4. Update this file under "Unreleased" section
-5. Create a pull request
-6. Upon release, move items from "Unreleased" to the appropriate version section
+### Fixed
 
-## Release Schedule
+- Backend lint violations and import formatting.
+- Flask application and test client fixtures are now provided separately
+  for compatibility with pytest-flask.
+- Integration tests use the client fixture without overwriting it.
 
-- **Patch versions** (1.0.x): Bug fixes and minor improvements - as needed
-- **Minor versions** (1.x.0): New features - monthly
-- **Major versions** (x.0.0): Breaking changes - as needed
+### Security
 
----
+- Documented support for the latest stable PaperlessCheck 1.x release.
+- Added instructions for private vulnerability reporting and coordinated
+  disclosure.
 
-For more information, see [CONTRIBUTING.md](CONTRIBUTING.md)
+## [1.1.0] - 2026-10-04
+
+### Changed
+
+- Updated Ruff to `0.15.21`.
+- Updated pytest to `9.1.1`.
+- Updated Flask-CORS to `6.0.5`.
+- Updated `python-dotenv` to `1.2.3`.
+- Updated `psycopg2-binary` to `2.9.13`.
+- Updated Black to `26.5.1`.
+- Updated the frontend Docker build image from `node:22-alpine` to
+  `node:26-alpine`.
+- Updated GitHub Actions dependencies.
+
+## [1.0.0] - 2026-05-04
+
+Initial MVP release. Published on GitHub using the tag `Release`.
+
+### Added
+
+- Flask REST API for creating, reading, updating, and deleting checklists
+  and checklist items.
+- React frontend for creating, viewing, and deleting checklists, adding
+  and deleting items, and toggling item completion.
+- Checklist progress indicators.
+- Responsive user interface with loading states and error messages.
+- Input validation for checklist and item requests.
+- Health check endpoints.
+- PostgreSQL persistence for checklists and items.
+- Database schema initialization and sample checklists.
+- Cascading deletion of items when their checklist is deleted.
+- Index on the checklist reference used by checklist items.
+- Dockerfiles for the backend and frontend.
+- Docker Compose setup for the application and database.
+- Nginx configuration for serving the frontend.
+- CI checks for backend linting, formatting, and tests, plus frontend builds.
+- Docker image build and publishing workflow.
+- Dependabot configuration.
+- README, API reference, deployment instructions, and contribution guide.
+
+### Changed
+
+- Updated React and React DOM to `19.2.5`.
+- Updated Vite to `8.0.10` and its React plugin to `6.0.1`.
+- Updated Flask to `3.1.3` and Flask-CORS to `6.0.2`.
+- Updated `python-dotenv` to `1.2.2`.
+- Updated `psycopg2-binary` to `2.9.12`.
+- Updated pytest to `9.0.3`, Black to `26.3.1`, and Ruff to `0.15.12`.
+
+### Fixed
+
+- Initial CI integration and lint/format checks.
+- SQL schema and sample data setup for displaying the example checklists.
+
+[Unreleased]: https://github.com/Parkerrino/PaperlessCheck/compare/1.1.1...HEAD
+[1.1.1]: https://github.com/Parkerrino/PaperlessCheck/compare/1.1.0...1.1.1
+[1.1.0]: https://github.com/Parkerrino/PaperlessCheck/compare/Release...1.1.0
+[1.0.0]: https://github.com/Parkerrino/PaperlessCheck/releases/tag/Release
