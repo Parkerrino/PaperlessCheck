@@ -135,7 +135,8 @@ Initial MVP release. Published on GitHub using the tag `Release`.
 - Initial CI integration and lint/format checks.
 - SQL schema and sample data setup for displaying the example checklists.
 
-[Unreleased]: https://github.com/Parkerrino/PaperlessCheck/compare/1.1.1...HEAD
+[Unreleased]: https://github.com/Parkerrino/PaperlessCheck/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/Parkerrino/PaperlessCheck/compare/1.1.1...v1.2.0
 [1.1.1]: https://github.com/Parkerrino/PaperlessCheck/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/Parkerrino/PaperlessCheck/compare/Release...1.1.0
 [1.0.0]: https://github.com/Parkerrino/PaperlessCheck/releases/tag/Release
