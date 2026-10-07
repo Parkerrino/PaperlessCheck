@@ -21,7 +21,7 @@ def validate_checklist_data(data: Any) -> list[str]:
     errors: list[str] = []
     _validate_title(data, errors)
 
-    if data.get("description") and not isinstance(data["description"], str):
+    if "description" in data and not isinstance(data["description"], str):
         errors.append("Description must be a string")
 
     return errors
@@ -38,7 +38,12 @@ def validate_checklist_item_data(data: Any) -> list[str]:
     if "completed" in data and not isinstance(data["completed"], bool):
         errors.append("Completed must be a boolean")
 
-    if "order_index" in data and not isinstance(data["order_index"], int):
-        errors.append("Order index must be an integer")
+    if "order_index" in data:
+        order_index = data["order_index"]
+
+        if isinstance(order_index, bool) or not isinstance(order_index, int):
+            errors.append("Order index must be an integer")
+        elif order_index < 0:
+            errors.append("Order index must be zero or greater")
 
     return errors
