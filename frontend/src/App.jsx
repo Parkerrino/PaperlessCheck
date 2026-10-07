@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import './index.css'
+import { filterChecklists } from './utils/filterChecklists'
 
 function App() {
   const [checklists, setChecklists] = useState([])
@@ -12,15 +13,8 @@ function App() {
   const [error, setError] = useState('')
 
   const API_BASE = 'http://localhost:5000/api/checklists'
-
-  const normalizedQuery = searchQuery.trim().toLowerCase()
-
-  const filteredChecklists = checklists.filter((checklist) =>
-    [checklist.title, checklist.description].some((value) =>
-      (value ?? '').toLowerCase().includes(normalizedQuery)
-    )
-  )
-
+  const filteredChecklists = filterChecklists(checklists, searchQuery)
+  
   // Fetch all checklists on mount.
   useEffect(() => {
     fetchChecklists()
