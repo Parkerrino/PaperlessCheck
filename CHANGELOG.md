@@ -10,14 +10,12 @@ the [project roadmap](README.md#roadmap).
 
 ## [Unreleased]
 
-## [1.2.0] - 2026-10-07
-
 ### Added
 
 - Checklist search by title and description.
 - Case-insensitive search with leading and trailing whitespace ignored.
 - A "No checklists found" message when no entries match the search.
-- Seven automated search tests covering title and description matches,
+- Seven automated search tests covering title matches, description matches,
   case handling, surrounding whitespace, empty queries, missing matches,
   and missing or null descriptions.
 - Vitest as the frontend test runner, available through `npm test`.
@@ -52,15 +50,6 @@ the [project roadmap](README.md#roadmap).
   or non-negative integer item positions.
 - Renamed the Vite configuration to `vite.config.mjs` to explicitly use
   the ES module format.
-
-### Upgrade Notes
-
-- No database schema migration is required for these changes.
-- API clients must send descriptions as strings or omit the field.
-  Explicit null values are rejected.
-- When supplied, `order_index` must be a non-negative integer.
-  Booleans, negative numbers, fractions, strings, and null are rejected.
-- Invalid values receive HTTP 400 responses.
 
 ## [1.1.1] - 2026-10-06
 
