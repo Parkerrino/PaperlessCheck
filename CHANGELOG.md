@@ -10,8 +10,12 @@ the [project roadmap](README.md#roadmap).
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-08
+
 ### Added
 
+- Dockerfile healthchecks for the backend and frontend application images.
+- Frontend Nginx health endpoint.
 - Checklist search by title and description.
 - Case-insensitive search with leading and trailing whitespace ignored.
 - A "No checklists found" message when no entries match the search.
@@ -28,6 +32,12 @@ the [project roadmap](README.md#roadmap).
   positions remain accepted.
 
 ### Changed
+
+- Frontend runtime uses an unprivileged Nginx image on container port 8080;
+  the default browser URL remains http://localhost:3000.
+- Docker Compose uses the backend image healthcheck.
+- Updated README with environment setup, credential rotation, health endpoints,
+  development and test commands, deployment limitations, and the 2026 roadmap.
 
 - Extracted checklist filtering from `App.jsx` into
   `frontend/src/utils/filterChecklists.js`.
@@ -50,6 +60,14 @@ the [project roadmap](README.md#roadmap).
   or non-negative integer item positions.
 - Renamed the Vite configuration to `vite.config.mjs` to explicitly use
   the ES module format.
+
+### Security
+
+- Run the backend and frontend application containers as non-root users.
+- Replace hardcoded Compose database credentials with environment interpolation
+  and require a non-empty `POSTGRES_PASSWORD`.
+- Set read-only default permissions in the Docker publishing workflow while
+  retaining package write permission in the publishing job.
 
 ## [1.1.1] - 2026-10-06
 
@@ -134,8 +152,8 @@ Initial MVP release. Published on GitHub using the tag `Release`.
 
 - Initial CI integration and lint/format checks.
 - SQL schema and sample data setup for displaying the example checklists.
-
-[Unreleased]: https://github.com/Parkerrino/PaperlessCheck/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/Parkerrino/PaperlessCheck/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/Parkerrino/PaperlessCheck/compare/1.2.0...v1.2.1
 [1.2.0]: https://github.com/Parkerrino/PaperlessCheck/compare/1.1.1...v1.2.0
 [1.1.1]: https://github.com/Parkerrino/PaperlessCheck/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/Parkerrino/PaperlessCheck/compare/Release...1.1.0
