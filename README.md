@@ -1,437 +1,364 @@
-# 📋 PaperlessCheck
+# PaperlessCheck
 
-A modern, digital checklist management application built with Flask, React, and PostgreSQL. Organize your tasks, projects, and workflows in one centralized place.
+PaperlessCheck is a self-hosted checklist application built with Flask, React,
+and PostgreSQL. Create checklists, track item completion, and find checklists
+by title or description.
 
 ## Features
 
-✨ **Core Features**
-- 📝 Create and manage multiple checklists
-- ✅ Add and check off items in each checklist
-- 📊 Progress tracking (completed items count)
-- 🗑️ Delete checklists and individual items
-- 💾 Persistent storage with PostgreSQL
-- 🎨 Modern, responsive UI
+- Create and delete checklists and checklist items.
+- Mark items as completed and view checklist progress.
+- Search checklist titles and descriptions, ignoring case and surrounding whitespace.
+- Store checklists and items in PostgreSQL.
+- Validate API input before accessing the database for rejected requests.
+- Run the application with Docker Compose.
+- Run backend and frontend application containers as non-root users.
+- Check application container health through Docker healthchecks.
 
-🏗️ **Architecture**
-- **Backend**: Flask REST API with PostgreSQL
-- **Frontend**: React with Vite
-- **Database**: PostgreSQL 16
-- **Deployment**: Docker & Docker Compose
+The REST API also provides update endpoints for checklists and items.
 
-## Project Structure
+## Requirements
 
-```
-PaperlessCheck/
-├── backend/
-│   ├── app.py                 # Flask application entry point
-│   ├── requirements.txt        # Python dependencies
-│   ├── Dockerfile             # Backend container definition
-│   ├── routes/
-│   │   └── checklist_routes.py # API endpoints
-│   ├── services/
-│   │   └── validation_service.py # Input validation logic
-│   └── data/
-│       └── sample_checklists.py # Sample data
-├── frontend/
-│   ├── src/
-│   │   ├── App.jsx           # Main React component
-│   │   ├── main.jsx          # React entry point
-│   │   └── index.css         # Styling
-│   ├── index.html            # HTML template
-│   ├── package.json          # Node dependencies
-│   ├── vite.config.js        # Vite configuration
-│   ├── nginx.conf            # Nginx configuration
-│   └── Dockerfile            # Frontend container definition
-├── database/
-│   └── init.sql/
-│       └── schema.sql        # Database schema & sample data
-└── docker-compose.yml        # Docker Compose orchestration
-```
+For the complete application:
 
-## Prerequisites
+- Docker with the Compose plugin (`docker compose`).
+- A running Docker engine using Linux containers.
+- Available host ports 3000 and 5000.
 
-- Docker and Docker Compose installed
-- Or: Python 3.12+, Node.js 22+, PostgreSQL 16
+For development and tests outside containers:
 
-## Quick Start with Docker
+- Python 3.12, matching backend CI.
+- Node.js 22, matching frontend CI; use an up-to-date patch release compatible
+  with the packages in `frontend/package-lock.json`.
+- PostgreSQL 16 for backend integration tests.
 
-### 1. Clone and Setup
-```bash
-git clone <repository-url>
+The frontend Docker build currently uses Node.js 26. Exact Python dependencies
+are declared in `backend/requirements.txt`; frontend dependency versions are
+resolved in `frontend/package-lock.json`.
+
+## Quick start
+
+### 1. Clone the repository
+
+```sh
+git clone https://github.com/Parkerrino/PaperlessCheck.git
 cd PaperlessCheck
 ```
 
-### 2. Start Services
-```bash
-docker-compose up -d
+### 2. Configure the database credentials
+
+Create `.env` in the repository root from `.env.example`.
+For an existing installation, edit the existing `.env` instead of overwriting it.
+
+PowerShell:
+
+```powershell
+Copy-Item .env.example .env
 ```
 
-### 3. Access Application
-- **Frontend**: http://localhost:3000
-- **Backend API**: http://localhost:5000
-- **Database**: localhost:5432
+Linux or macOS:
 
-## Development Setup
-
-### Backend Setup
-
-```bash
-# Navigate to backend
-cd backend
-
-# Create virtual environment
-python -m venv venv
-
-# Activate virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Set environment variables
-set DATABASE_URL=postgresql://paperless:paperless@localhost:5432/paperlesscheck
-set FLASK_ENV=development
-
-# Run the application
-python app.py
+```sh
+cp .env.example .env
 ```
 
-The backend API will be available at `http://localhost:5000`
+Set these values in `.env`:
 
-### Frontend Setup
-
-```bash
-# Navigate to frontend
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run start
-
-# Build for production
-npm run build
-```
-
-The frontend will be available at `http://localhost:5173` (Vite default)
-
-### Database Setup
-
-If running without Docker, set up PostgreSQL:
-
-```sql
--- Create database
-CREATE DATABASE paperlesscheck;
-
--- Create user
-CREATE USER paperless WITH PASSWORD 'paperless';
-
--- Grant privileges
-GRANT ALL PRIVILEGES ON DATABASE paperlesscheck TO paperless;
-
--- Connect to database and run schema.sql
-\c paperlesscheck
-\i database/init.sql/schema.sql
-```
-
-## API Documentation
-
-### Base URL
-```
-http://localhost:5000/api/checklists
-```
-
-### Endpoints
-
-#### Health Check
-```
-GET /health
-Response: { "status": "healthy", "database": "connected" }
-```
-
-#### Get All Checklists
-```
-GET /
-Response: [
-  {
-    "id": 1,
-    "title": "Project Setup",
-    "description": "Initial setup",
-    "created_at": "2024-05-04T10:00:00",
-    "items": [...]
-  }
-]
-```
-
-#### Get Specific Checklist
-```
-GET /<checklist_id>
-Response: { checklist details with items }
-```
-
-#### Create Checklist
-```
-POST /
-Body: {
-  "title": "New Checklist",
-  "description": "Optional description"
-}
-Response: { newly created checklist }
-Status: 201
-```
-
-#### Update Checklist
-```
-PUT /<checklist_id>
-Body: {
-  "title": "Updated Title",
-  "description": "Updated description"
-}
-Response: { updated checklist }
-```
-
-#### Delete Checklist
-```
-DELETE /<checklist_id>
-Response: { "message": "Checklist deleted successfully" }
-```
-
-#### Add Item to Checklist
-```
-POST /<checklist_id>/items
-Body: {
-  "title": "Task item",
-  "order_index": 1
-}
-Response: { newly created item }
-Status: 201
-```
-
-#### Update Item
-```
-PUT /items/<item_id>
-Body: {
-  "title": "Updated item",
-  "completed": true,
-  "order_index": 1
-}
-Response: { updated item }
-```
-
-#### Delete Item
-```
-DELETE /items/<item_id>
-Response: { "message": "Item deleted successfully" }
-```
-
-## Database Schema
-
-### checklists table
-```sql
-CREATE TABLE checklists (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### checklist_items table
-```sql
-CREATE TABLE checklist_items (
-    id SERIAL PRIMARY KEY,
-    checklist_id INTEGER NOT NULL REFERENCES checklists(id) ON DELETE CASCADE,
-    title VARCHAR(255) NOT NULL,
-    completed BOOLEAN DEFAULT FALSE,
-    order_index INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-## Environment Variables
-
-### Backend (.env or docker-compose.yml)
-```
-DATABASE_URL=postgresql://paperless:paperless@db:5432/paperlesscheck
-FLASK_ENV=development
-```
-
-### Database (docker-compose.yml)
-```
+```dotenv
 POSTGRES_USER=paperless
-POSTGRES_PASSWORD=paperless
+POSTGRES_PASSWORD=
 POSTGRES_DB=paperlesscheck
 ```
 
-## Technology Stack
+Fill in `POSTGRES_PASSWORD` with a long, unique password before starting.
+The empty value above is intentional: Compose refuses to start without a password.
+Use a randomly generated alphanumeric password for this configuration because
+Compose inserts it directly into the database connection URL. Characters with
+special meaning in URLs require appropriate encoding in a connection URL.
 
-| Component | Technology | Version |
-|-----------|-----------|---------|
-| Backend Framework | Flask | 3.0.0 |
-| Backend ORM/Driver | psycopg2 | 2.9.9 |
-| CORS | Flask-CORS | 4.0.0 |
-| Frontend Framework | React | 18.2.0 |
-| Frontend Build | Vite | 5.2.8 |
-| Database | PostgreSQL | 16 |
-| Containerization | Docker | Latest |
+Keep `.env` out of version control. `.env.example` is the shareable template.
 
-## Docker Commands
+Compose constructs `DATABASE_URL` for the backend using the database service
+hostname `db`. It explicitly sets `FLASK_ENV=production`; the development setting
+in `.env.example` does not override that Compose value.
 
-```bash
-# Start services in background
-docker-compose up -d
+### 3. Build and start
 
-# View logs
-docker-compose logs -f
+Run from the repository root:
 
-# Stop services
-docker-compose down
-
-# Remove volumes (careful - deletes data!)
-docker-compose down -v
-
-# Rebuild containers
-docker-compose build --no-cache
+```sh
+docker compose up -d --build
+docker compose ps
 ```
+
+Wait for the backend and frontend to report healthy.
+
+| Service | Address | Purpose |
+| --- | --- | --- |
+| Frontend | http://localhost:3000 | Checklist interface |
+| Backend | http://localhost:5000 | Flask API |
+| PostgreSQL | `db:5432` inside Compose | Persistent database |
+
+The frontend maps host port 3000 to container port 8080.
+PostgreSQL is not published on a host port by the default Compose configuration.
+
+### 4. Verify the application
+
+Create a temporary checklist, add an item, mark it complete, and reload the page
+to check persistence. Search for the checklist by title and description, then
+delete the temporary checklist.
+
+## Healthchecks and logs
+
+| Endpoint | What it checks |
+| --- | --- |
+| `http://localhost:3000/health` | Frontend Nginx responds |
+| `http://localhost:5000/health` | Backend application responds |
+| `http://localhost:5000/api/checklists/health` | Backend can connect to PostgreSQL |
+
+The application container healthchecks use their respective `/health` endpoints.
+A healthy backend container does not by itself confirm database connectivity.
+The frontend waits for the backend container to become healthy before starting.
+
+```sh
+docker compose ps
+docker compose logs --tail=100 backend frontend db
+docker compose logs -f backend
+```
+
+In PowerShell, check the endpoints with:
+
+```powershell
+Invoke-RestMethod http://localhost:3000/health
+Invoke-RestMethod http://localhost:5000/health
+Invoke-RestMethod http://localhost:5000/api/checklists/health
+```
+
+## Database persistence and credentials
+
+PostgreSQL stores data in the named Compose volume `paperlesscheck_db_data`.
+Compose normally prefixes the actual Docker volume name with the project name.
+The initialization script is `database/init.sql`, mounted into the PostgreSQL
+initialization directory. Initialization runs when the database data directory
+is first created; changing this script does not migrate an existing database.
+
+Stop the application while preserving its database volume:
+
+```sh
+docker compose down
+```
+
+Do not add `-v` unless you intend to delete the database volume and its contents.
+Back up existing data before upgrades or database changes.
+
+Changing `POSTGRES_PASSWORD` in `.env` does not change the password of a role in
+an existing database volume. To rotate the password for the default user:
+
+```sh
+docker compose exec db psql -U paperless -d paperlesscheck
+```
+
+At the PostgreSQL prompt:
+
+```text
+\password paperless
+\q
+```
+
+Enter the new password when prompted, update `.env` to match, then run
+`docker compose up -d` to apply the changed container environment. Substitute
+your configured user and database if you changed the defaults.
+
+## Development
+
+### Frontend with the Docker backend
+
+Start the database and backend from the repository root:
+
+```sh
+docker compose up -d --build backend
+```
+
+Then start Vite:
+
+```sh
+cd frontend
+npm ci
+npm run start
+```
+
+Open the URL printed by Vite, normally http://localhost:5173.
+The current frontend uses `http://localhost:5000/api/checklists` for API requests.
+`VITE_API_BASE_URL` is not currently consumed by `App.jsx`.
+For access from another computer, `localhost` refers to that computer;
+remote deployment requires adapting the frontend API configuration.
+
+### Backend outside Docker
+
+Use a reachable PostgreSQL 16 database with the schema from `database/init.sql`
+already initialized. The default Compose database has no host port, so it cannot
+be reached at `localhost:5432` without an explicit local port mapping.
+Stop any container using port 5000 before running a local backend on that port.
+
+From the repository root, using PowerShell:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r backend/requirements.txt
+$env:DATABASE_URL = 'postgresql://YOUR_USER:YOUR_URL_ENCODED_PASSWORD@localhost:5432/YOUR_DATABASE'
+$env:FLASK_ENV = 'development'
+python backend/app.py
+```
+
+Replace all connection placeholders with your local development settings.
+On Linux or macOS, activate the environment with `source .venv/bin/activate`
+and set environment variables with `export`.
+
+## Automated checks
+
+### Frontend
+
+From the repository root:
+
+```sh
+cd frontend
+npm ci
+npm test
+npm run build
+```
+
+`npm test` runs Vitest once. Search tests cover title and description matches,
+case-insensitive matching, surrounding whitespace, empty queries, no matches,
+and missing or null descriptions.
+
+### Backend
+
+With the virtual environment activated, from the repository root:
+
+```sh
+python -m pip install -r backend/requirements.txt
+cd backend
+python -m ruff check .
+python -m black --check .
+```
+
+Run the validation test files without requiring a live application database:
+
+```sh
+python -m pytest -q tests/test_checklist_validation.py tests/test_validation_edge_cases.py
+```
+
+For the full test suite, first configure `DATABASE_URL` to point to a dedicated
+test database initialized from `database/init.sql`. Do not use a database holding
+important application data: integration tests create and delete records.
+
+PowerShell, from `backend`:
+
+```powershell
+$env:DATABASE_URL = 'postgresql://YOUR_TEST_USER:YOUR_URL_ENCODED_PASSWORD@localhost:5432/YOUR_TEST_DATABASE'
+$env:FLASK_ENV = 'test'
+python -m pytest -q
+```
+
+The CI workflow provisions PostgreSQL 16, initializes the schema, and runs the
+backend checks with Python 3.12. The frontend job uses Node.js 22 and runs
+`npm ci`, `npm test`, and `npm run build`.
+
+## API reference
+
+The checklist API base path is `/api/checklists`.
+
+| Method | Path | Operation |
+| --- | --- | --- |
+| GET | `/api/checklists` | List checklists |
+| POST | `/api/checklists` | Create a checklist |
+| GET | `/api/checklists/<checklist_id>` | Get a checklist |
+| PUT | `/api/checklists/<checklist_id>` | Update a checklist |
+| DELETE | `/api/checklists/<checklist_id>` | Delete a checklist and its items |
+| POST | `/api/checklists/<checklist_id>/items` | Add an item |
+| PUT | `/api/checklists/items/<item_id>` | Update an item |
+| DELETE | `/api/checklists/items/<item_id>` | Delete an item |
+
+Send request bodies as JSON with `Content-Type: application/json`.
+Example checklist creation body:
+
+```json
+{
+  "title": "Project setup",
+  "description": "Tasks for the next release"
+}
+```
+
+Titles must be non-empty strings containing more than whitespace.
+Descriptions may be omitted or provided as strings, including empty strings.
+Explicit `null` descriptions are rejected by validation.
+Item positions (`order_index`) may be omitted or supplied as non-negative
+integers; booleans are rejected.
 
 ## Troubleshooting
 
-### Database Connection Error
-- Ensure PostgreSQL container is running: `docker-compose ps`
-- Check DATABASE_URL environment variable
-- Verify credentials in docker-compose.yml
+- **Docker engine unavailable:** Start Docker Desktop or the Docker daemon and
+  check that Linux containers are enabled.
+- **Missing password:** Set `POSTGRES_PASSWORD` in the root `.env` file.
+- **Database authentication fails after editing `.env`:** Update the existing
+  PostgreSQL role password too; see the credential rotation instructions above.
+- **Backend cannot reach the database:** Check `docker compose logs db backend`
+  and the database-aware health endpoint. On first startup, PostgreSQL may still
+  be initializing; backend process health alone does not establish readiness.
+- **Frontend cannot reach the API:** Confirm that the backend is reachable on
+  port 5000 from the browser's computer. The frontend API address is currently
+  hardcoded; editing `VITE_API_BASE_URL` alone has no effect.
+- **Port already in use:** Stop the conflicting service or adjust Compose port
+  mappings. Changing the API host port also requires adapting frontend requests.
 
-### Frontend Can't Reach API
-- Ensure nginx is configured correctly
-- Check docker-compose networking
-- Verify backend container is running
+## Security and deployment scope
 
-### Port Already in Use
-```bash
-# Find and stop the service using the port
-# On Windows:
-netstat -ano | findstr :3000
-taskkill /PID <PID> /F
+The current application has no built-in user authentication or authorization.
+Use it in a trusted environment with appropriate network access controls.
+The default Compose configuration publishes the frontend and backend on the
+host's network interfaces; it is not restricted to loopback.
 
-# On macOS/Linux:
-lsof -i :3000
-kill -9 <PID>
-```
+Both application containers run as non-root users. This reduces container
+privileges but does not provide user authentication or make the application
+suitable for unrestricted public access.
 
-## Features Implemented for MVP
+The backend currently starts with `python app.py`. Setting `FLASK_ENV=production`
+does not replace Flask's development server with a production WSGI server.
+Production server setup and deployment improvements remain planned work.
 
-✅ Full CRUD operations for checklists
-✅ Full CRUD operations for checklist items
-✅ Item completion tracking
-✅ Progress visualization
-✅ Responsive web UI
-✅ REST API with proper error handling
-✅ Database persistence
-✅ Docker containerization
-✅ Health check endpoint
-✅ Input validation
+See [SECURITY.md](SECURITY.md) for supported versions and private vulnerability
+reporting instructions.
 
 ## Roadmap
 
-The roadmap is organized by implementation priority and feature dependencies. It
-does not imply release dates.
+These are planning targets for the remainder of 2026, not promised release dates.
+Existing loading states, error messages, and progress indicators will be improved
+rather than introduced as entirely new features.
 
-### 1. Foundation and reliability
-- [ ] Unit, integration, and end-to-end tests
-- [ ] Logging system and enhanced error messages
-- [ ] Input sanitization, SQL injection prevention, and XSS protection
-- [ ] CSRF protection, security headers, and HTTPS enforcement
-- [ ] API rate limiting and dependency vulnerability scanning
-- [ ] Database query optimization and performance monitoring
-- [ ] Caching layer (Redis)
+| Target | Focus |
+| --- | --- |
+| 1.2.1, October | Container hardening and documentation |
+| 1.3.0, October | Better loading, empty and error states; deletion confirmation; sorting |
+| 1.4.0, early November | Validated JSON import/export and documented backup/restore |
+| 1.5.0, late November | Checklist duplication with reset completion state; status filters; progress refinements |
+| 1.6.0, early December | Production backend server, readiness checks, logs and update instructions |
+| Late December | Stabilization, maintenance and installation/update verification |
 
-### 2. Personal productivity
-- [ ] Search functionality
-- [ ] Categories and tags for checklists
-- [ ] Due dates and reminders
-- [ ] Recurring checklists
-- [ ] Templates library
-- [ ] Export to PDF and Excel
-- [ ] Dark mode
-
-### 3. Accounts and collaboration
-- [ ] User authentication and authorization
-- [ ] Checklist sharing and collaboration
-- [ ] Comments on items
-- [ ] Activity logging
-- [ ] Email notifications
-
-### 4. Integrations and platforms
-- [ ] Webhook support
-- [ ] Native mobile apps
-
-## Testing
-
-### Manual Testing
-1. Create a checklist with title and description
-2. Add multiple items to the checklist
-3. Check/uncheck items
-4. Update checklist title
-5. Delete items
-6. Delete entire checklist
-7. Verify progress counting
-
-### API Testing with cURL
-```bash
-# Get all checklists
-curl http://localhost:5000/api/checklists
-
-# Create a checklist
-curl -X POST http://localhost:5000/api/checklists \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Test", "description": "Test description"}'
-
-# Health check
-curl http://localhost:5000/health
-```
-
-## Performance Considerations
-
-- Database indexes on checklist_id for faster item queries
-- Frontend pagination can be added for large checklist collections
-- Backend caching can be implemented for frequently accessed checklists
-- API rate limiting can be added for production
-
-## Security Considerations
-
-For production deployment:
-- Add authentication and authorization
-- Use environment variables for sensitive data
-- Implement rate limiting
-- Add input sanitization
-- Enable HTTPS/SSL
-- Implement CSRF protection
-- Add request validation
-- Use database transaction rollbacks on errors
-
-## License
-
-This project is open source and available under the MIT License.
+Authentication, roles, and collaboration require separate design work and are
+planned for consideration in 2027. Longer-term ideas include categories, due
+dates, recurring checklists, templates, PDF/Excel export, dark mode, and webhooks.
 
 ## Contributing
 
-Contributions are welcome! Please follow these steps:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Create a branch or fork, make a focused change, and add tests where applicable.
+Run the relevant checks before opening a pull request. Include documentation
+updates for changed setup steps or behavior.
 
-## Support
+Report bugs and feature requests through
+[GitHub Issues](https://github.com/Parkerrino/PaperlessCheck/issues).
+See [CHANGELOG.md](CHANGELOG.md) for recorded changes.
 
-For issues, questions, or suggestions, please create an issue in the repository.
+## License
 
----
-
-**Happy organizing! 📝✨**
+PaperlessCheck is available under the MIT License. See [LICENSE](LICENSE).
