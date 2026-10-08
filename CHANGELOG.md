@@ -10,6 +10,8 @@ the [project roadmap](README.md#roadmap).
 
 ## [Unreleased]
 
+## [1.2.1] - 2026-10-08
+
 ### Added
 
 - Dockerfile healthchecks for the backend and frontend application images.
@@ -150,8 +152,8 @@ Initial MVP release. Published on GitHub using the tag `Release`.
 
 - Initial CI integration and lint/format checks.
 - SQL schema and sample data setup for displaying the example checklists.
-
-[Unreleased]: https://github.com/Parkerrino/PaperlessCheck/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/Parkerrino/PaperlessCheck/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/Parkerrino/PaperlessCheck/compare/1.2.0...v1.2.1
 [1.2.0]: https://github.com/Parkerrino/PaperlessCheck/compare/1.1.1...v1.2.0
 [1.1.1]: https://github.com/Parkerrino/PaperlessCheck/compare/1.1.0...1.1.1
 [1.1.0]: https://github.com/Parkerrino/PaperlessCheck/compare/Release...1.1.0
