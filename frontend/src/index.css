@@ -315,3 +315,49 @@ code {
     flex-direction: column;
   }
 }
+
+/* Deutsche Beschriftungen und Rückmeldungen */
+button, input, textarea { font: inherit; }
+button:focus-visible, input:focus-visible, textarea:focus-visible {
+  outline: 3px solid #3348b2;
+  outline-offset: 3px;
+}
+button:disabled { cursor: not-allowed; opacity: 0.55; }
+.btn-primary:disabled:hover { transform: none; box-shadow: none; }
+.input-field:disabled { background: #f3f4f6; }
+.sidebar { width: 360px; flex-shrink: 0; }
+.main-content, .checklist-title-btn, .checklist-title-btn span:first-child { min-width: 0; }
+.checklist-title-btn span:first-child, .items-list label span, .checklist-detail h2,
+.description { overflow-wrap: anywhere; }
+.section-heading { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 1rem; }
+.section-heading h2 { margin: 0; flex: 1; }
+.btn-secondary { background: #edf0ff; color: #3348a0; }
+.btn-secondary:hover:not(:disabled) { background: #dfe5ff; }
+.create-form label, .checklist-search label, .item-input-group label { font-size: 0.9rem; font-weight: 600; }
+.checklist-search { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
+.search-summary { font-size: 0.85rem; color: #555; }
+.item-count { color: #555; flex-shrink: 0; white-space: nowrap; }
+.btn-delete { min-width: 44px; min-height: 44px; flex-shrink: 0; }
+.empty-state, .empty-state-large { color: #666; }
+.empty-state-large { min-height: 180px; text-align: center; }
+.success-message, .status-message { margin: 1rem; padding: 1rem; border-radius: 8px; }
+.success-message { color: #20552c; background: #e9f6ec; border-left: 4px solid #37834a; }
+.status-message { color: #30418b; background: #edf0ff; }
+.feedback-region:empty { display: none; }
+.progress-summary { margin: 1rem 0 0.4rem; color: #555; }
+progress { width: 100%; height: 12px; accent-color: #5568d3; margin-bottom: 1.5rem; }
+.add-item-form { align-items: flex-end; }
+.item-input-group { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.item-input-group input { width: 100%; }
+.items-list label { min-width: 0; }
+.items-list input[type="checkbox"] { flex-shrink: 0; }
+@media (max-width: 768px) {
+  .sidebar { width: 100%; max-height: none; }
+  .checklists-list { max-height: 320px; }
+  .add-item-form { align-items: stretch; }
+  .App-header { padding: 1.5rem 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; }
+  .btn-primary:hover { transform: none; }
+}

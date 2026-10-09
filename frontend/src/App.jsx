@@ -1,361 +1,276 @@
-import React, { useState, useEffect } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import './index.css'
 import { filterChecklists } from './utils/filterChecklists'
 
-function App() {
+const API_BASE = 'http://localhost:5000/api/checklists'
+
+async function request(path = '', options = {}) {
+  const response = await fetch(`${API_BASE}${path}`, options)
+  if (!response.ok) throw new Error('Die Anfrage ist fehlgeschlagen.')
+  return response.json()
+}
+
+function jsonRequest(method, data) {
+  return { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) }
+}
+
+export default function App() {
   const [checklists, setChecklists] = useState([])
   const [selectedChecklist, setSelectedChecklist] = useState(null)
   const [newChecklistTitle, setNewChecklistTitle] = useState('')
   const [newChecklistDesc, setNewChecklistDesc] = useState('')
   const [newItemTitle, setNewItemTitle] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [pending, setPending] = useState('')
   const [error, setError] = useState('')
-
-  const API_BASE = 'http://localhost:5000/api/checklists'
+  const [notice, setNotice] = useState('')
+  const [loaded, setLoaded] = useState(false)
+  const actionLock = useRef(false)
+  const searchInput = useRef(null)
+  const itemInput = useRef(null)
+  const busy = Boolean(pending)
   const filteredChecklists = filterChecklists(checklists, searchQuery)
-  
-  // Fetch all checklists on mount.
+
+  // The ref locks immediately, including repeated events before React renders.
+  async function runAction(key, task, failureMessage, successMessage = '') {
+    if (actionLock.current) return
+    actionLock.current = true
+    setPending(key)
+    setError('')
+    setNotice('')
+    try {
+      await task()
+      setNotice(successMessage)
+    } catch {
+      setError(failureMessage)
+    } finally {
+      actionLock.current = false
+      setPending('')
+    }
+  }
+
+  function loadChecklists() {
+    return runAction('load', async () => {
+      const data = await request()
+      if (!Array.isArray(data)) throw new Error('Ungültige Antwort')
+      setChecklists(data)
+      setSelectedChecklist(current => current
+        ? data.find(list => list.id === current.id) || null
+        : null)
+      setLoaded(true)
+    }, 'Die Checklisten konnten nicht geladen werden. Prüfe die Verbindung und versuche es erneut.')
+  }
+
   useEffect(() => {
-    fetchChecklists()
+    void loadChecklists()
   }, [])
 
-  const fetchChecklists = async () => {
-    try {
-      setLoading(true)
-      setError('')
-
-      const response = await fetch(API_BASE)
-      if (!response.ok) throw new Error('Failed to fetch checklists')
-
-      const data = await response.json()
-      setChecklists(data || [])
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchChecklistDetail = async (id) => {
-    try {
-      setError('')
-
-      const response = await fetch(`${API_BASE}/${id}`)
-      if (!response.ok) throw new Error('Failed to fetch checklist')
-
-      const data = await response.json()
+  function selectChecklist(id) {
+    return runAction('detail', async () => {
+      const data = await request(`/${id}`)
       setSelectedChecklist(data)
-    } catch (err) {
-      setError(err.message)
-    }
+      setNewItemTitle('')
+    }, 'Die Checkliste konnte nicht geöffnet werden. Bitte versuche es erneut.')
   }
 
-  const createChecklist = async (e) => {
-    e.preventDefault()
+  function updateItems(checklistId, transform) {
+    const update = list => list.id === checklistId
+      ? { ...list, items: transform(list.items || []) }
+      : list
+    setChecklists(current => current.map(update))
+    setSelectedChecklist(current => current ? update(current) : null)
+  }
 
-    if (!newChecklistTitle.trim()) {
-      setError('Checklist title is required')
+  function createChecklist(event) {
+    event.preventDefault()
+    if (actionLock.current) return
+    const title = newChecklistTitle.trim()
+    if (!title) {
+      setNotice('')
+      setError('Bitte gib einen Titel für die Checkliste ein.')
       return
     }
-
-    try {
-      setError('')
-
-      const response = await fetch(API_BASE, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: newChecklistTitle,
-          description: newChecklistDesc
-        })
-      })
-
-      if (!response.ok) throw new Error('Failed to create checklist')
-
+    return runAction('create', async () => {
+      const data = await request('', jsonRequest('POST', {
+        title, description: newChecklistDesc.trim()
+      }))
+      const checklist = { ...data, items: data.items || [] }
+      setChecklists(current => [checklist, ...current])
+      setSelectedChecklist(checklist)
       setNewChecklistTitle('')
       setNewChecklistDesc('')
-      await fetchChecklists()
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const deleteChecklist = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this checklist?')) {
-      return
-    }
-
-    try {
-      setError('')
-
-      const response = await fetch(`${API_BASE}/${id}`, {
-        method: 'DELETE'
-      })
-
-      if (!response.ok) throw new Error('Failed to delete checklist')
-
-      if (selectedChecklist?.id === id) {
-        setSelectedChecklist(null)
-      }
-
-      await fetchChecklists()
-    } catch (err) {
-      setError(err.message)
-    }
-  }
-
-  const addItem = async (e) => {
-    e.preventDefault()
-
-    if (!selectedChecklist || !newItemTitle.trim()) {
-      setError('Please select a checklist and enter an item title')
-      return
-    }
-
-    try {
-      setError('')
-
-      const response = await fetch(
-        `${API_BASE}/${selectedChecklist.id}/items`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            title: newItemTitle,
-           order_index: (selectedChecklist.items?.length || 0) + 1
-          })
-        }
-      )
-
-      if (!response.ok) throw new Error('Failed to add item')
-
       setNewItemTitle('')
-      await fetchChecklistDetail(selectedChecklist.id)
-      await fetchChecklists()
-    } catch (err) {
-      setError(err.message)
-    }
+      setSearchQuery('')
+    }, 'Die Checkliste konnte nicht angelegt oder die Antwort nicht empfangen werden. Deine Eingaben bleiben erhalten. Aktualisiere die Übersicht vor einem weiteren Versuch.',
+    `Die Checkliste „${title}“ wurde angelegt.`)
   }
 
-  const toggleItem = async (itemId, completed) => {
-    const item = selectedChecklist.items.find((i) => i.id === itemId)
-    if (!item) return
-
-    try {
-      setError('')
-
-      const response = await fetch(`${API_BASE}/items/${itemId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: item.title,
-          completed: !completed,
-          order_index: item.order_index
-        })
-      })
-
-      if (!response.ok) throw new Error('Failed to update item')
-
-      await fetchChecklistDetail(selectedChecklist.id)
-      await fetchChecklists()
-    } catch (err) {
-      setError(err.message)
-    }
+  function deleteChecklist(checklist) {
+    if (actionLock.current) return
+    if (!window.confirm(`Checkliste „${checklist.title}“ wirklich löschen?\n\nAlle zugehörigen Aufgaben werden ebenfalls gelöscht. Dies kann nicht rückgängig gemacht werden.`)) return
+    return runAction('delete-list', async () => {
+      await request(`/${checklist.id}`, { method: 'DELETE' })
+      setChecklists(current => current.filter(list => list.id !== checklist.id))
+      setSelectedChecklist(current => current?.id === checklist.id ? null : current)
+      if (selectedChecklist?.id === checklist.id) setNewItemTitle('')
+    }, 'Das Löschen konnte nicht bestätigt werden. Aktualisiere die Übersicht, um den aktuellen Stand zu prüfen.',
+    `Die Checkliste „${checklist.title}“ wurde gelöscht.`)
   }
 
-  const deleteItem = async (itemId) => {
-    if (!window.confirm('Are you sure you want to delete this item?')) {
+  async function addItem(event) {
+    event.preventDefault()
+    if (actionLock.current || !selectedChecklist) return
+    const title = newItemTitle.trim()
+    if (!title) {
+      setNotice('')
+      setError('Bitte gib einen Titel für die Aufgabe ein.')
       return
     }
-
-    try {
-      setError('')
-
-      const response = await fetch(`${API_BASE}/items/${itemId}`, {
-        method: 'DELETE'
-      })
-
-      if (!response.ok) throw new Error('Failed to delete item')
-
-      await fetchChecklistDetail(selectedChecklist.id)
-      await fetchChecklists()
-    } catch (err) {
-      setError(err.message)
-    }
+    const checklistId = selectedChecklist.id
+    const positions = (selectedChecklist.items || []).map(item =>
+      Number.isInteger(item.order_index) ? item.order_index : 0)
+    await runAction('add-item', async () => {
+      const data = await request(`/${checklistId}/items`, jsonRequest('POST', {
+        title, order_index: Math.max(0, ...positions) + 1
+      }))
+      updateItems(checklistId, items => [...items, data])
+      setNewItemTitle('')
+    }, 'Die Aufgabe konnte nicht angelegt oder die Antwort nicht empfangen werden. Deine Eingabe bleibt erhalten. Aktualisiere vor einem weiteren Versuch.',
+    `Die Aufgabe „${title}“ wurde hinzugefügt.`)
+    itemInput.current?.focus()
   }
+
+  function toggleItem(item) {
+    if (actionLock.current || !selectedChecklist) return
+    const checklistId = selectedChecklist.id
+    return runAction('toggle-item', async () => {
+      const data = await request(`/items/${item.id}`, jsonRequest('PUT', {
+        title: item.title, completed: !item.completed,
+        order_index: item.order_index ?? 0
+      }))
+      updateItems(checklistId, items => items.map(current => current.id === item.id ? data : current))
+    }, 'Der Aufgabenstatus konnte nicht gespeichert oder bestätigt werden. Aktualisiere die Übersicht, um den aktuellen Stand zu prüfen.',
+    item.completed ? 'Die Aufgabe ist wieder offen.' : 'Die Aufgabe wurde als erledigt markiert.')
+  }
+
+  function deleteItem(item) {
+    if (actionLock.current || !selectedChecklist) return
+    if (!window.confirm(`Aufgabe „${item.title}“ wirklich löschen?\n\nDies kann nicht rückgängig gemacht werden.`)) return
+    const checklistId = selectedChecklist.id
+    return runAction('delete-item', async () => {
+      await request(`/items/${item.id}`, { method: 'DELETE' })
+      updateItems(checklistId, items => items.filter(current => current.id !== item.id))
+    }, 'Das Löschen der Aufgabe konnte nicht bestätigt werden. Aktualisiere die Übersicht, um den aktuellen Stand zu prüfen.',
+    `Die Aufgabe „${item.title}“ wurde gelöscht.`)
+  }
+
+  function clearSearch() {
+    setSearchQuery('')
+    searchInput.current?.focus()
+  }
+
+  const items = selectedChecklist?.items || []
+  const completed = items.filter(item => item.completed).length
 
   return (
     <div className="App">
       <header className="App-header">
         <h1>📋 PaperlessCheck</h1>
-        <p>Organize your tasks with digital checklists</p>
+        <p>Aufgaben organisieren. Gemeinsam den Überblick behalten.</p>
       </header>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      {error && <div className="error-message" role="alert">{error}</div>}
+      <div className="feedback-region" role="status" aria-live="polite" aria-atomic="true">
+        {busy ? <p className="status-message">{pending === 'load' || pending === 'detail'
+          ? 'Daten werden geladen …' : 'Änderung wird gespeichert …'}</p>
+          : notice && <p className="success-message">{notice}</p>}
+      </div>
 
-      <div className="container">
-        {/* Sidebar - Checklists List */}
-        <aside className="sidebar">
-          <h2>Checklists</h2>
-
+      <div className="container" aria-busy={busy}>
+        <aside className="sidebar" aria-label="Checklistenübersicht">
+          <div className="section-heading">
+            <h2>Checklisten</h2>
+            <button type="button" className="btn btn-secondary" disabled={busy}
+              onClick={loadChecklists}>Aktualisieren</button>
+          </div>
           <form onSubmit={createChecklist} className="create-form">
-            <input
-              type="text"
-              placeholder="Checklist title"
-              value={newChecklistTitle}
-              onChange={(e) => setNewChecklistTitle(e.target.value)}
-              className="input-field"
-            />
-
-            <textarea
-              placeholder="Description (optional)"
-              value={newChecklistDesc}
-              onChange={(e) => setNewChecklistDesc(e.target.value)}
-              className="input-field"
-              rows="2"
-            />
-
-            <button type="submit" className="btn btn-primary">
-              ➕ New Checklist
+            <label htmlFor="checklist-title">Titel der Checkliste</label>
+            <input id="checklist-title" className="input-field" placeholder="Zum Beispiel: Arbeitsbeginn"
+              value={newChecklistTitle} maxLength={255} disabled={busy}
+              onChange={event => setNewChecklistTitle(event.target.value)} />
+            <label htmlFor="checklist-description">Beschreibung (optional)</label>
+            <textarea id="checklist-description" className="input-field" rows="2"
+              placeholder="Wofür ist diese Checkliste gedacht?" value={newChecklistDesc}
+              disabled={busy} onChange={event => setNewChecklistDesc(event.target.value)} />
+            <button type="submit" className="btn btn-primary" disabled={busy || !loaded || !newChecklistTitle.trim()}>
+              {pending === 'create' ? 'Wird angelegt …' : 'Checkliste anlegen'}
             </button>
           </form>
 
           <div className="checklist-search">
-            <label htmlFor="checklist-search">
-              Search checklists
-            </label>
-
-            <input
-              id="checklist-search"
-              type="search"
-              placeholder="Search title or description..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-field"
-            />
+            <label htmlFor="checklist-search">Checklisten durchsuchen</label>
+            <input id="checklist-search" ref={searchInput} type="search" className="input-field"
+              placeholder="Titel oder Beschreibung suchen …" value={searchQuery}
+              onChange={event => setSearchQuery(event.target.value)} />
+            {searchQuery && <button type="button" className="btn btn-secondary" onClick={clearSearch}>Suche zurücksetzen</button>}
+            {loaded && <p className="search-summary">{filteredChecklists.length} von {checklists.length} Checklisten</p>}
           </div>
 
           <div className="checklists-list">
-            {loading ? (
-              <p>Loading...</p>
-            ) : checklists.length === 0 ? (
-              <p className="empty-state">No checklists yet</p>
-            ) : filteredChecklists.length === 0 ? (
-              <p className="empty-state" role="status">
-                No checklists found
-              </p>
-            ) : (
-              filteredChecklists.map((checklist) => (
-                <div
-                  key={checklist.id}
-                  className={`checklist-item ${
-                    selectedChecklist?.id === checklist.id ? 'active' : ''
-                  }`}
-                >
-                  <button
-                    onClick={() => fetchChecklistDetail(checklist.id)}
-                    className="checklist-title-btn"
-                  >
-                    {checklist.title}
-
-                    <span className="item-count">
-                      {checklist.items?.filter((i) => i.completed).length}
-                      /
-                      {checklist.items?.length || 0}
-                    </span>
-                  </button>
-
-                  <button
-                    onClick={() => deleteChecklist(checklist.id)}
-                    className="btn-delete"
-                    title="Delete checklist"
-                  >
-                    🗑️
-                  </button>
-                </div>
-              ))
-            )}
+            {!loaded ? <p className="empty-state">{busy ? 'Checklisten werden geladen …' : 'Keine Daten geladen. Bitte erneut aktualisieren.'}</p>
+              : checklists.length === 0 ? <p className="empty-state">Noch keine Checklisten vorhanden. Lege deine erste Checkliste an.</p>
+                : filteredChecklists.length === 0 ? <p className="empty-state">Keine passenden Checklisten gefunden. Versuche einen anderen Suchbegriff.</p>
+                  : filteredChecklists.map(checklist => (
+                    <div key={checklist.id} className={`checklist-item ${selectedChecklist?.id === checklist.id ? 'active' : ''}`}>
+                      <button type="button" className="checklist-title-btn" disabled={busy}
+                        aria-pressed={selectedChecklist?.id === checklist.id} onClick={() => selectChecklist(checklist.id)}>
+                        <span>{checklist.title}</span>
+                        <span className="item-count" aria-label={`${(checklist.items || []).filter(item => item.completed).length} von ${checklist.items?.length || 0} Aufgaben erledigt`}>
+                          {(checklist.items || []).filter(item => item.completed).length}/{checklist.items?.length || 0}
+                        </span>
+                      </button>
+                      <button type="button" className="btn-delete" disabled={busy}
+                        title={`Checkliste „${checklist.title}“ löschen`} aria-label={`Checkliste „${checklist.title}“ löschen`}
+                        onClick={() => deleteChecklist(checklist)}>🗑️</button>
+                    </div>
+                  ))}
           </div>
         </aside>
 
-        {/* Main Content - Checklist Details */}
         <main className="main-content">
-          {selectedChecklist ? (
-            <div className="checklist-detail">
-              <h2>{selectedChecklist.title}</h2>
-
-              {selectedChecklist.description && (
-                <p className="description">
-                  {selectedChecklist.description}
-                </p>
-              )}
-
-              <form onSubmit={addItem} className="add-item-form">
-                <input
-                  type="text"
-                  placeholder="Add new item..."
-                  value={newItemTitle}
-                  onChange={(e) => setNewItemTitle(e.target.value)}
-                  className="input-field"
-                />
-
-                <button type="submit" className="btn btn-primary">
-                  Add Item
-                </button>
-              </form>
-
-              <div className="items-list">
-                <h3>Items</h3>
-
-                {selectedChecklist.items &&
-                selectedChecklist.items.length > 0 ? (
-                  <ul>
-                    {selectedChecklist.items.map((item) => (
-                      <li
-                        key={item.id}
-                        className={item.completed ? 'completed' : ''}
-                      >
-                        <label>
-                          <input
-                            type="checkbox"
-                            checked={item.completed}
-                            onChange={() =>
-                              toggleItem(item.id, item.completed)
-                            }
-                          />
-
-                          <span>{item.title}</span>
-                        </label>
-
-                        <button
-                          onClick={() => deleteItem(item.id)}
-                          className="btn-delete"
-                          title="Delete item"
-                        >
-                          🗑️
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="empty-state">No items yet</p>
-                )}
+          {selectedChecklist ? <div className="checklist-detail">
+            <h2>{selectedChecklist.title}</h2>
+            {selectedChecklist.description && <p className="description">{selectedChecklist.description}</p>}
+            <p className="progress-summary">{completed} von {items.length} Aufgaben erledigt</p>
+            <progress max={Math.max(items.length, 1)} value={completed} aria-label="Fortschritt der Checkliste" />
+            <form onSubmit={addItem} className="add-item-form">
+              <div className="item-input-group">
+                <label htmlFor="item-title">Neue Aufgabe</label>
+                <input id="item-title" ref={itemInput} className="input-field" placeholder="Was ist zu tun?"
+                  value={newItemTitle} maxLength={255} disabled={busy}
+                  onChange={event => setNewItemTitle(event.target.value)} />
               </div>
+              <button type="submit" className="btn btn-primary" disabled={busy || !newItemTitle.trim()}>
+                {pending === 'add-item' ? 'Wird hinzugefügt …' : 'Aufgabe hinzufügen'}
+              </button>
+            </form>
+            <div className="items-list">
+              <h3>Aufgaben</h3>
+              {items.length > 0 ? <ul>{items.map(item => (
+                <li key={item.id} className={item.completed ? 'completed' : ''}>
+                  <label>
+                    <input type="checkbox" checked={Boolean(item.completed)} disabled={busy} onChange={() => toggleItem(item)} />
+                    <span>{item.title}</span>
+                  </label>
+                  <button type="button" className="btn-delete" disabled={busy}
+                    title={`Aufgabe „${item.title}“ löschen`} aria-label={`Aufgabe „${item.title}“ löschen`}
+                    onClick={() => deleteItem(item)}>🗑️</button>
+                </li>
+              ))}</ul> : <p className="empty-state">Diese Checkliste enthält noch keine Aufgaben.</p>}
             </div>
-          ) : (
-            <div className="empty-state-large">
-              <p>Select a checklist to get started</p>
-            </div>
-          )}
+          </div> : <div className="empty-state-large"><p>Wähle eine Checkliste aus oder lege eine neue an.</p></div>}
         </main>
       </div>
     </div>
   )
 }
-
-export default App
