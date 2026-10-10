@@ -12,6 +12,9 @@ the [project roadmap](README.md#roadmap).
 
 ### Security
 
+- Generate disposable scan database credentials per run instead of storing a fixed password.
+- Document narrowly scoped scanner-job and negative-test exceptions; API authentication findings remain open.
+
 - Reject null characters in checklist titles/descriptions and item titles before database access.
 - Remove unrestricted backend CORS access; browser clients use the same-origin API proxy.
 - Add `X-Content-Type-Options: nosniff` and JSON HTTP errors, preserving status and `Allow` headers.

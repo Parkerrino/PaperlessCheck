@@ -26,8 +26,9 @@ Compose project and removes only that stack afterward. Builds/image pulls need
 internet access; scan containers do not have external network access.
 
 The target is fixed to `http://backend:5000`. Do not replace it with a live or
-internal deployment. The runner has no user-supplied target argument. Temporary
-scan credentials are test fixtures and are not production credentials.
+internal deployment. The runner has no user-supplied target argument. The runner generates a fresh random database password for each run and passes
+it only through the child-process environment, including cleanup. Compose refuses
+to start without it. No production credentials are used.
 
 ## Local run (PowerShell, Linux or macOS)
 
@@ -93,3 +94,21 @@ It complements unit/integration tests and is not a full EthicalCheck-equivalent
 security assurance. Application auth and the internal fork remain separate work.
 
 Reference: https://www.zaproxy.org/docs/docker/api-scan/
+
+## Static-analysis findings in PR #69
+
+- Removed the fixed scan password and embedded fixed credentials from Compose.
+  Use the Python runner so all Compose calls receive the same per-run password.
+- `CKV_DOCKER_2` is suppressed only in `security/Dockerfile.zap`: this container
+  is a one-shot job, monitored by runner timeout, exit code and report validation.
+  Backend and database healthchecks remain enabled.
+- The SDL insecure-URL rule is suppressed only on the FTP rejection assertion.
+  This is a negative unit test and never opens a network connection.
+- The two OpenAPI authentication findings remain open. The scan contract reflects
+  the actual unauthenticated API. Internal production deployment still requires
+  real authentication and authorization; inventing security schemes would hide
+  the gap. There is no global skip or disabled security scanner.
+
+The second local pilot on 2026-10-10 reported two groups: server version disclosure
+(low) and client error responses (informational). CORS, HTTP 500, content type and
+nosniff findings were absent; the service log contained no tracebacks or HTTP 5xx.

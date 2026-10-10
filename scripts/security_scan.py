@@ -1,5 +1,7 @@
 """Run ZAP only against a disposable Compose stack. Requires Docker Compose."""
 import json
+import os
+import secrets
 import subprocess
 import sys
 import uuid
@@ -17,9 +19,11 @@ def main():
     compose = ["docker", "compose", "-f", str(ROOT / "compose.security.yml"), "-p", project]
     metadata = {"project": project, "started": datetime.now(timezone.utc).isoformat(), "target": "http://backend:5000", "status": "infrastructure-error"}
     exit_code = 3
+    scan_env = os.environ.copy()
+    scan_env["PAPERLESS_SCAN_DB_PASSWORD"] = secrets.token_hex(32)
 
     def run(args, **kwargs):
-        return subprocess.run(args, cwd=ROOT, text=True, **kwargs)
+        return subprocess.run(args, cwd=ROOT, text=True, env=scan_env, **kwargs)
 
     try:
         run(compose + ["build"], check=True, timeout=900)
