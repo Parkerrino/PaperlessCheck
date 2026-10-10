@@ -8,6 +8,8 @@ by title or description.
 
 - Create and delete checklists and checklist items.
 - Mark items as completed and view checklist progress.
+- Use the German interface, named deletion confirmations, visible save states,
+  preserved inputs after errors, and search reset.
 - Search checklist titles and descriptions, ignoring case and surrounding whitespace.
 - Store checklists and items in PostgreSQL.
 - Validate API input before accessing the database for rejected requests.
@@ -188,10 +190,38 @@ npm run start
 ```
 
 Open the URL printed by Vite, normally http://localhost:5173.
-The current frontend uses `http://localhost:5000/api/checklists` for API requests.
-`VITE_API_BASE_URL` is not currently consumed by `App.jsx`.
-For access from another computer, `localhost` refers to that computer;
-remote deployment requires adapting the frontend API configuration.
+The frontend requests `/api/checklists` on its own origin by default. Vite forwards
+`/api` to `http://127.0.0.1:5000` during development and preview. Docker Nginx
+already forwards `/api/` to the backend service.
+
+To customize, copy `frontend/.env.example` to `frontend/.env.local`:
+
+```dotenv
+VITE_API_BASE_URL=/api
+API_PROXY_TARGET=http://127.0.0.1:5000
+```
+
+`VITE_API_BASE_URL` is the API root **without** `/checklists`; it can be a
+root-relative path such as `/api` or a full HTTP(S) URL ending in `/api`.
+Keep `/api` for same-origin deployment and normal Vite development. If using a
+custom relative prefix, configure the reverse proxy for that prefix too.
+The backend does not grant cross-origin browser access by default. Use the
+same-origin `/api` proxy. An absolute cross-origin URL additionally requires an
+explicit, restricted CORS/HTTPS configuration at your deployment proxy.
+No credentials or secrets belong in `VITE_*`: they are public browser code.
+`API_PROXY_TARGET` is used only by the Vite server, not by the browser.
+
+Vite substitutes the API root at build time. Restart Vite after configuration
+changes; rebuild production assets. For Compose, set `VITE_API_BASE_URL=/api`
+in the repository-root `.env` and run `docker compose up -d --build frontend`.
+The frontend Dockerfile exposes the same build argument for direct Docker builds.
+Changing an environment variable on an already-built Nginx container does not
+change the API address. Published images use their build-time configuration.
+
+Before deployment, verify from a second computer that requests go to
+`http(s)://<frontend-host>/api/checklists`, not that computer's localhost.
+IIS must forward `/api` to the backend for the same-origin default. This change
+does not implement IIS authentication, MSSQL support, or deployment approval.
 
 ### Backend outside Docker
 
@@ -265,6 +295,20 @@ The CI workflow provisions PostgreSQL 16, initializes the schema, and runs the
 backend checks with Python 3.12. The frontend job uses Node.js 22 and runs
 `npm ci`, `npm test`, and `npm run build`.
 
+## Local API security scan
+
+A ZAP API-scan prototype replaces the disabled EthicalCheck placeholder. It uses
+a separate Docker Compose stack with disposable PostgreSQL data and an internal
+network. It does not contact a production or internal deployment.
+
+```sh
+python scripts/security_scan.py
+```
+
+Reports and diagnostics are saved under `reports/paperless-scan-<id>/`.
+See [the scan guide](docs/api-security-scan.md) for prerequisites, findings policy,
+manual CI execution, limitations, and the first pilot findings and pending remediation rescan.
+
 ## API reference
 
 The checklist API base path is `/api/checklists`.
@@ -307,10 +351,11 @@ integers; booleans are rejected.
   and the database-aware health endpoint. On first startup, PostgreSQL may still
   be initializing; backend process health alone does not establish readiness.
 - **Frontend cannot reach the API:** Confirm that the backend is reachable on
-  port 5000 from the browser's computer. The frontend API address is currently
-  hardcoded; editing `VITE_API_BASE_URL` alone has no effect.
+  its configured proxy target. Inspect `/api/checklists` in the browser network
+  tab and check Nginx/Vite proxy logs; rebuild after changing the API root.
 - **Port already in use:** Stop the conflicting service or adjust Compose port
-  mappings. Changing the API host port also requires adapting frontend requests.
+  mappings. For local Vite development, update `API_PROXY_TARGET` if the backend
+  host port changes. Docker Nginx uses the internal backend port.
 
 ## Security and deployment scope
 

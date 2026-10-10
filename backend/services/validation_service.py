@@ -9,6 +9,8 @@ def _validate_title(data: dict[str, Any], errors: list[str]) -> None:
 
     if not isinstance(title, str) or not title.strip():
         errors.append("Title is required and must be a non-empty string")
+    elif "\x00" in title:
+        errors.append("Title must not contain null characters")
     elif len(title) > 255:
         errors.append("Title must not exceed 255 characters")
 
@@ -23,6 +25,8 @@ def validate_checklist_data(data: Any) -> list[str]:
 
     if "description" in data and not isinstance(data["description"], str):
         errors.append("Description must be a string")
+    elif "\x00" in data.get("description", ""):
+        errors.append("Description must not contain null characters")
 
     return errors
 
