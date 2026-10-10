@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import './index.css'
 import { filterChecklists } from './utils/filterChecklists'
 
-const API_BASE = 'http://localhost:5000/api/checklists'
+import { API_BASE } from './utils/apiBase'
 
 async function request(path = '', options = {}) {
   const response = await fetch(`${API_BASE}${path}`, options)
