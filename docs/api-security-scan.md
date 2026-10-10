@@ -2,10 +2,19 @@
 
 ## Status
 
-Prepared for local Docker execution and a manually triggered GitHub Actions pilot.
-The full ZAP/PostgreSQL run has NOT been executed in the preparation environment:
-Docker is unavailable there. Static configuration checks and frontend tests are
-separate evidence, not proof of a completed security scan.
+First local pilot completed on 2026-10-10 (project `paperless-scan-591aa3025a`).
+Reports show ZAP exit 2, runner exit 0, six alert groups and no high-risk findings.
+This is a completed scan **with warnings**, not security clearance.
+
+Review identified wildcard CORS (medium), null-character input causing HTTP 500,
+HTML responses for HTTP 405, missing `nosniff`, and the development server version
+header. Client-error responses are informational and require coverage context.
+The first four causes now have code changes and regression tests; a repeat Docker
+scan must confirm the fixes. Production WSGI hosting/version disclosure remains
+open under #61. The development server is not suitable for internal production.
+
+Docker is unavailable in the code preparation environment, so the repeat scan
+and manual CI pilot still need execution. Unit tests do not replace that evidence.
 
 ## Scope
 
@@ -69,7 +78,8 @@ Do not use `pull_request_target` to run untrusted branch code with elevated acce
 
 ## Limits and next acceptance steps
 
-- [ ] Run the full prototype locally with Docker and inspect HTML/JSON reports.
+- [x] Run the first prototype locally with Docker and inspect reports/logs.
+- [ ] Repeat the scan after remediation and compare remaining findings.
 - [ ] Verify actual route coverage and review findings, including expected header warnings.
 - [ ] Confirm diagnostics survive a failed scan and teardown removes the test stack.
 - [ ] Run the manual CI pilot and download its artifact.

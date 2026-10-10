@@ -10,13 +10,21 @@ the [project roadmap](README.md#roadmap).
 
 ## [Unreleased]
 
+### Security
+
+- Reject null characters in checklist titles/descriptions and item titles before database access.
+- Remove unrestricted backend CORS access; browser clients use the same-origin API proxy.
+- Add `X-Content-Type-Options: nosniff` and JSON HTTP errors, preserving status and `Allow` headers.
+- Add regression tests for findings from the first local ZAP pilot.
+
+
 ### Added
 
 - Eight UI regression tests for the German checklist interface, deletion flows,
   duplicate submissions, preserved inputs, search reset, and progress updates.
 - Configurable frontend API root with a same-origin `/api` default and Vite proxy.
 - Isolated ZAP API-scan prototype with a disposable database, local reports,
-  and a manual CI workflow that preserves scan artifacts. Full Docker pilot pending.
+  and a manual CI workflow that preserves scan artifacts. First local pilot completed with findings; remediation rescan pending.
 
 ### Changed
 

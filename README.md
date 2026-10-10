@@ -205,7 +205,9 @@ API_PROXY_TARGET=http://127.0.0.1:5000
 root-relative path such as `/api` or a full HTTP(S) URL ending in `/api`.
 Keep `/api` for same-origin deployment and normal Vite development. If using a
 custom relative prefix, configure the reverse proxy for that prefix too.
-Absolute cross-origin URLs require a suitable CORS/HTTPS configuration.
+The backend does not grant cross-origin browser access by default. Use the
+same-origin `/api` proxy. An absolute cross-origin URL additionally requires an
+explicit, restricted CORS/HTTPS configuration at your deployment proxy.
 No credentials or secrets belong in `VITE_*`: they are public browser code.
 `API_PROXY_TARGET` is used only by the Vite server, not by the browser.
 
@@ -305,7 +307,7 @@ python scripts/security_scan.py
 
 Reports and diagnostics are saved under `reports/paperless-scan-<id>/`.
 See [the scan guide](docs/api-security-scan.md) for prerequisites, findings policy,
-manual CI execution, limitations, and the outstanding end-to-end pilot.
+manual CI execution, limitations, and the first pilot findings and pending remediation rescan.
 
 ## API reference
 
