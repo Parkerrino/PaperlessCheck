@@ -20,7 +20,7 @@ jobs:
         run: python scripts/security_scan.py
       - name: Preserve scan reports and diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: api-security-${{ github.run_id }}-${{ github.run_attempt }}
           path: reports/
