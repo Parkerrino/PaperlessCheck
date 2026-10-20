@@ -407,3 +407,10 @@ See [CHANGELOG.md](CHANGELOG.md) for recorded changes.
 ## License
 
 PaperlessCheck is available under the MIT License. See [LICENSE](LICENSE).
+
+## Selfhost login
+
+This version requires a user login. Before first use or after upgrading an existing
+installation, run the additive auth migration and create an account using the
+[Selfhost authentication guide](docs/selfhost-auth.md). Existing checklists remain
+in a shared workspace. HTTPS and secure cookies are the deployment default.
