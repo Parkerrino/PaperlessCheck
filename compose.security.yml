@@ -34,9 +34,7 @@ services:
     networks: [scan]
   scanner:
     environment:
-      ZAP_AUTH_HEADER: Cookie
       ZAP_AUTH_HEADER_VALUE: "${ZAP_AUTH_HEADER_VALUE:-}"
-      ZAP_AUTH_HEADER_SITE: "backend:5000"
       PAPERLESS_SCAN_CSRF: "${PAPERLESS_SCAN_CSRF:-}"
     build:
       context: ./security

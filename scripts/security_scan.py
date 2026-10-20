@@ -41,7 +41,9 @@ def main():
     ]
 
     def run(args, check=False, **kwargs):
-        return subprocess.run(args, cwd=ROOT, text=True, env=scan_env, check=check, **kwargs)
+        return subprocess.run(
+            args, cwd=ROOT, text=True, env=scan_env, check=check, **kwargs
+        )
 
     try:
         run(compose + ["build"], check=True, timeout=900)
@@ -90,6 +92,10 @@ def main():
             reports_ok = (
                 reports_ok and copied.returncode == 0 and (output / name).exists()
             )
+        scan_log = run(["docker", "logs", container], capture_output=True, timeout=30)
+        if "PAPERLESS_ZAP_AUTH_PREFLIGHT_OK" not in scan_log.stdout + scan_log.stderr:
+            raise ValueError("ZAP did not confirm authenticated reads and writes")
+        metadata["zap_authenticated_access"] = "passed"
         scan_env["PAPERLESS_SCAN_VERIFY"] = "1"
         verification = run(
             compose
