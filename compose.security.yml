@@ -21,6 +21,7 @@ services:
     environment:
       DATABASE_URL: postgresql://scan:${PAPERLESS_SCAN_DB_PASSWORD:?Run scripts/security_scan.py to generate scan credentials}@db:5432/scan
       FLASK_ENV: test
+      AUTH_COOKIE_SECURE: "false"  # Isolated HTTP test network only.
     depends_on:
       db:
         condition: service_healthy
@@ -32,12 +33,16 @@ services:
       start_period: 10s
     networks: [scan]
   scanner:
+    environment:
+      ZAP_AUTH_HEADER_VALUE: "${ZAP_AUTH_HEADER_VALUE:-}"
+      PAPERLESS_SCAN_CSRF: "${PAPERLESS_SCAN_CSRF:-}"
     build:
       context: ./security
       dockerfile: Dockerfile.zap
     volumes:
       - ./security/openapi.json:/scan/openapi.json:ro
-    command: [zap-api-scan.py, -t, /scan/openapi.json, -f, openapi, -r, report.html, -J, report.json, -w, report.md, -T, '5', -z, '-config ascan.maxScanDurationInMins=10']
+      - ./security/auth_hook.py:/scan/auth_hook.py:ro
+    command: [zap-api-scan.py, --hook=/scan/auth_hook.py, -t, /scan/openapi.json, -f, openapi, -r, report.html, -J, report.json, -w, report.md, -T, '5', -z, '-config ascan.maxScanDurationInMins=10']
     depends_on:
       backend:
         condition: service_healthy

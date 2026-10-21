@@ -3,9 +3,11 @@ import './index.css'
 import { filterChecklists } from './utils/filterChecklists'
 
 import { API_BASE } from './utils/apiBase'
+import { sessionHeaders } from './utils/session'
 
 async function request(path = '', options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, options)
+  const response = await fetch(`${API_BASE}${path}`, { ...options, credentials: 'include', headers: { ...options.headers, ...sessionHeaders() } })
+  if (response.status === 401) window.dispatchEvent(new Event('paperless-session-expired'))
   if (!response.ok) throw new Error('Die Anfrage ist fehlgeschlagen.')
   return response.json()
 }

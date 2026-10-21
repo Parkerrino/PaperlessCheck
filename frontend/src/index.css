@@ -361,3 +361,8 @@ progress { width: 100%; height: 12px; accent-color: #5568d3; margin-bottom: 1.5r
   *, *::before, *::after { transition: none !important; }
   .btn-primary:hover { transform: none; }
 }
+
+.auth-login { max-width: 420px; margin: 8vh auto; padding: 24px; }
+.auth-login form { display: grid; gap: 12px; }
+.auth-login input { padding: 12px; border: 1px solid #999; border-radius: 6px; }
+.auth-bar { display: flex; align-items: center; justify-content: flex-end; gap: 16px; padding: 12px 24px; flex-wrap: wrap; }

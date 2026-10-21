@@ -1,4 +1,5 @@
 """Run ZAP only against a disposable Compose stack. Requires Docker Compose."""
+
 import json
 import os
 import secrets
@@ -16,24 +17,105 @@ def main():
     container = project + "-zap"
     output = ROOT / "reports" / project
     output.mkdir(parents=True)
-    compose = ["docker", "compose", "-f", str(ROOT / "compose.security.yml"), "-p", project]
-    metadata = {"project": project, "started": datetime.now(timezone.utc).isoformat(), "target": "http://backend:5000", "status": "infrastructure-error"}
+    compose = [
+        "docker",
+        "compose",
+        "-f",
+        str(ROOT / "compose.security.yml"),
+        "-p",
+        project,
+    ]
+    metadata = {
+        "project": project,
+        "started": datetime.now(timezone.utc).isoformat(),
+        "target": "http://backend:5000",
+        "status": "infrastructure-error",
+    }
     exit_code = 3
     scan_env = os.environ.copy()
     scan_env["PAPERLESS_SCAN_DB_PASSWORD"] = secrets.token_hex(32)
+    scan_env["PAPERLESS_SCAN_LOGIN_PASSWORD"] = secrets.token_hex(32)
+    sensitive = [
+        scan_env["PAPERLESS_SCAN_DB_PASSWORD"],
+        scan_env["PAPERLESS_SCAN_LOGIN_PASSWORD"],
+    ]
 
-    def run(args, **kwargs):
-        return subprocess.run(args, cwd=ROOT, text=True, env=scan_env, **kwargs)
+    def run(args, check=False, **kwargs):
+        return subprocess.run(
+            args, cwd=ROOT, text=True, env=scan_env, check=check, **kwargs
+        )
 
     try:
         run(compose + ["build"], check=True, timeout=900)
-        run(compose + ["up", "-d", "--wait", "--wait-timeout", "120", "backend"], check=True, timeout=180)
-        result = run(compose + ["run", "--no-deps", "--name", container, "scanner"], timeout=1200)
+        run(
+            compose + ["up", "-d", "--wait", "--wait-timeout", "120", "backend"],
+            check=True,
+            timeout=180,
+        )
+        probe = (ROOT / "security/auth_probe.py").read_text()
+        setup = run(
+            compose
+            + [
+                "exec",
+                "-T",
+                "-e",
+                "PAPERLESS_SCAN_LOGIN_PASSWORD",
+                "backend",
+                "python",
+                "-",
+            ],
+            input=probe,
+            capture_output=True,
+            check=True,
+            timeout=60,
+        )
+        credentials = json.loads(setup.stdout)
+        scan_env["ZAP_AUTH_HEADER_VALUE"] = credentials["cookie"]
+        scan_env["PAPERLESS_SCAN_CSRF"] = credentials["csrf"]
+        sensitive.extend(
+            [
+                credentials["cookie"],
+                credentials["cookie"].split("=", 1)[1],
+                credentials["csrf"],
+            ]
+        )
+        metadata["auth_preflight"] = "passed"
+        result = run(
+            compose + ["run", "--no-deps", "--name", container, "scanner"], timeout=1200
+        )
         metadata["zap_exit_code"] = result.returncode
         reports_ok = True
         for name in ["report.html", "report.json", "report.md"]:
-            copied = run(["docker", "cp", f"{container}:/zap/wrk/{name}", str(output / name)])
-            reports_ok = reports_ok and copied.returncode == 0 and (output / name).exists()
+            copied = run(
+                ["docker", "cp", f"{container}:/zap/wrk/{name}", str(output / name)]
+            )
+            reports_ok = (
+                reports_ok and copied.returncode == 0 and (output / name).exists()
+            )
+        scan_log = run(["docker", "logs", container], capture_output=True, timeout=30)
+        if "PAPERLESS_ZAP_AUTH_PREFLIGHT_OK" not in scan_log.stdout + scan_log.stderr:
+            raise ValueError("ZAP did not confirm authenticated reads and writes")
+        metadata["zap_authenticated_access"] = "passed"
+        scan_env["PAPERLESS_SCAN_VERIFY"] = "1"
+        verification = run(
+            compose
+            + [
+                "exec",
+                "-T",
+                "-e",
+                "PAPERLESS_SCAN_VERIFY",
+                "-e",
+                "ZAP_AUTH_HEADER_VALUE",
+                "backend",
+                "python",
+                "-",
+            ],
+            input=probe,
+            capture_output=True,
+            check=True,
+            timeout=30,
+        )
+        metadata["auth_postflight"] = json.loads(verification.stdout)
         if reports_ok and result.returncode in (0, 1, 2):
             report = json.loads((output / "report.json").read_text())
             sites = report.get("site", [])
@@ -46,11 +128,19 @@ def main():
             metadata.update(alert_count=len(alerts), high_risk_count=len(high))
             # WARN remains visible in reports; high-risk findings fail independently.
             exit_code = 1 if high or result.returncode == 1 else 0
-            metadata["status"] = "findings-failed" if exit_code else ("warnings" if alerts or result.returncode == 2 else "passed")
+            metadata["status"] = (
+                "findings-failed"
+                if exit_code
+                else ("warnings" if alerts or result.returncode == 2 else "passed")
+            )
     except (OSError, subprocess.SubprocessError, ValueError, TypeError) as exc:
         metadata["error"] = str(exc)
     finally:
-        for name, command in [("services.log", compose + ["logs", "--no-color"]), ("scanner.log", ["docker", "logs", container]), ("images.json", compose + ["images", "--format", "json"])]:
+        for name, command in [
+            ("services.log", compose + ["logs", "--no-color"]),
+            ("scanner.log", ["docker", "logs", container]),
+            ("images.json", compose + ["images", "--format", "json"]),
+        ]:
             try:
                 result = run(command, capture_output=True, timeout=30)
                 (output / name).write_text(result.stdout + result.stderr)
@@ -58,13 +148,22 @@ def main():
                 pass
         try:
             run(["docker", "rm", "-f", container], capture_output=True, timeout=30)
-            cleanup = run(compose + ["down", "--volumes", "--remove-orphans"], timeout=60)
+            cleanup = run(
+                compose + ["down", "--volumes", "--remove-orphans"], timeout=60
+            )
             if cleanup.returncode:
                 metadata["cleanup_failed"] = True
                 exit_code = 3
         except (OSError, subprocess.SubprocessError):
             metadata["cleanup_failed"] = True
             exit_code = 3
+        # Reports can contain request headers; remove disposable credentials before upload.
+        for artifact in output.iterdir():
+            if artifact.is_file():
+                content = artifact.read_text(errors="replace")
+                for value in sensitive:
+                    content = content.replace(value, "[REDACTED]")
+                artifact.write_text(content)
         metadata["exit_code"] = exit_code
         (output / "summary.json").write_text(json.dumps(metadata, indent=2) + "\n")
         print(f"Reports: {output}")
