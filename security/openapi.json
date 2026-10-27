@@ -2,7 +2,8 @@
   "openapi": "3.0.3",
   "info": {
     "title": "PaperlessCheck disposable scan contract",
-    "version": "1.0.0"
+    "version": "1.0.0",
+    "description": "Authenticated checklist scan contract. Login/logout are tested by auth_probe and integration tests; public health endpoints are excluded from this authenticated contract."
   },
   "servers": [
     {
@@ -10,42 +11,6 @@
     }
   ],
   "paths": {
-    "/health": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
-    "/api/checklists/health": {
-      "get": {
-        "responses": {
-          "200": {
-            "description": "Success"
-          },
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Invalid input"
-          },
-          "404": {
-            "description": "Not found"
-          }
-        }
-      }
-    },
     "/api/checklists": {
       "get": {
         "responses": {
@@ -60,6 +25,12 @@
           },
           "404": {
             "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
           }
         }
       },
@@ -76,6 +47,12 @@
           },
           "404": {
             "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
           }
         },
         "requestBody": {
@@ -117,6 +94,12 @@
           },
           "404": {
             "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
           }
         },
         "parameters": [
@@ -145,6 +128,12 @@
           },
           "404": {
             "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
           }
         },
         "parameters": [
@@ -196,6 +185,12 @@
           },
           "404": {
             "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
           }
         },
         "parameters": [
@@ -226,6 +221,12 @@
           },
           "404": {
             "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
           }
         },
         "parameters": [
@@ -284,6 +285,12 @@
           },
           "404": {
             "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
           }
         },
         "parameters": [
@@ -340,6 +347,12 @@
           },
           "404": {
             "description": "Not found"
+          },
+          "401": {
+            "description": "Authentication required"
+          },
+          "403": {
+            "description": "Invalid CSRF token"
           }
         },
         "parameters": [
@@ -356,5 +369,25 @@
         ]
       }
     }
-  }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "paperless_session"
+      },
+      "csrfToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-CSRF-Token"
+      }
+    }
+  },
+  "security": [
+    {
+      "sessionCookie": [],
+      "csrfToken": []
+    }
+  ]
 }

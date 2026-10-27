@@ -70,11 +70,11 @@ digests for repeatable runs and define the repository's findings policy.
 ## CI pilot
 
 The existing `.github/workflows/ethicalcheck.yml` becomes **Local API security
-scan (ZAP prototype)**. It has only a manual `workflow_dispatch` trigger initially,
+scan (ZAP prototype)**. It supports manual `workflow_dispatch` and relevant `pull_request` triggers,
 read-only repository permissions, a disposable hosted runner and no secrets.
 The artifact upload runs even on scan failure, preserving reports for 14 days.
 After merging the reviewed workflow, run it through Actions and inspect the
-artifact. Enable pull-request triggers only after validating this pilot.
+artifact. Review the authenticated pilot results before merging.
 Do not use `pull_request_target` to run untrusted branch code with elevated access.
 
 ## Limits and next acceptance steps
@@ -104,11 +104,17 @@ Reference: https://www.zaproxy.org/docs/docker/api-scan/
   Backend and database healthchecks remain enabled.
 - The SDL insecure-URL rule is suppressed only on the FTP rejection assertion.
   This is a negative unit test and never opens a network connection.
-- The two OpenAPI authentication findings remain open. The scan contract reflects
-  the actual unauthenticated API. Internal production deployment still requires
-  real authentication and authorization; inventing security schemes would hide
-  the gap. There is no global skip or disabled security scanner.
+- OpenAPI now describes real cookie authentication and CSRF requirements.
+  Verify the new Checkov results before considering the original alerts resolved.
+  There is no global skip or disabled security scanner.
 
 The second local pilot on 2026-10-10 reported two groups: server version disclosure
 (low) and client error responses (informational). CORS, HTTP 500, content type and
 nosniff findings were absent; the service log contained no tracebacks or HTTP 5xx.
+
+## Authenticated scans
+
+See [Selfhost authentication](selfhost-auth.md). The contract covers eight protected
+CRUD operations. Login/CSRF/anonymous denial are checked by the runner; logout,
+revocation, expiry and throttling are covered by integration tests. Review CI
+results for this new scan flow before merge; a green static scan alone is insufficient.
