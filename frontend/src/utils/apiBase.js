@@ -10,4 +10,5 @@ export function resolveApiBase(value = '') {
   return base
 }
 
-export const API_BASE = `${resolveApiBase(import.meta.env.VITE_API_BASE_URL)}/checklists`
+export const API_ROOT = resolveApiBase(import.meta.env.VITE_API_BASE_URL)
+export const API_BASE = `${API_ROOT}/checklists`

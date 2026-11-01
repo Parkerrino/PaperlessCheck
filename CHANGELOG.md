@@ -10,6 +10,18 @@ the [project roadmap](README.md#roadmap).
 
 ## [Unreleased]
 
+### Selfhost authentication
+
+- Add CLI-managed accounts, scrypt password hashes, revocable PostgreSQL sessions,
+  login/logout UI, CSRF protection and database-backed login throttling.
+- Add a repeatable auth-table migration that preserves existing checklist data.
+- Require authentication for checklist operations; document shared-workspace access.
+- Authenticate isolated ZAP scans using a disposable account; verify anonymous
+  denial and session validity before/after the scan, and redact scan credentials.
+- Describe cookie/CSRF requirements in OpenAPI and run isolated scans on relevant PRs.
+- Add frontend login tests and a PostgreSQL authentication lifecycle in CI.
+
+
 ### Security
 
 - Generate disposable scan database credentials per run instead of storing a fixed password.

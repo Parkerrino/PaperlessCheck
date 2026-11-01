@@ -1,11 +1,13 @@
 import os
 
+from auth.routes import register_auth
 from flask import Flask, jsonify
 from werkzeug.exceptions import HTTPException
 
 from routes.checklist_routes import checklist_bp
 
 app = Flask(__name__)
+register_auth(app)
 
 # Browser clients use the same-origin /api proxy; no wildcard CORS access.
 
@@ -21,6 +23,7 @@ def health():
 
 @app.after_request
 def security_headers(response):
+    response.headers["Cache-Control"] = "no-store"
     response.headers["X-Content-Type-Options"] = "nosniff"
     return response
 

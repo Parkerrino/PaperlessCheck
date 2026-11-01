@@ -1,16 +1,5 @@
 from unittest.mock import patch
 
-import pytest
-
-from backend.app import app
-
-
-@pytest.fixture
-def client():
-    app.config["TESTING"] = True
-    with app.test_client() as client:
-        yield client
-
 
 def test_health_endpoint(client, mock_db_connection):
     """Test app health (proxied to routes)."""

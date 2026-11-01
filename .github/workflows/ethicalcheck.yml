@@ -1,8 +1,15 @@
 name: Local API security scan (ZAP prototype)
 
-# Manual pilot first. Enable PR triggers only after reviewing a successful pilot.
+# Scan only the disposable stack; no production credentials or deployment access.
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'security/**'
+      - 'scripts/security_scan.py'
+      - 'compose.security.yml'
+      - '.github/workflows/ethicalcheck.yml'
 
 permissions:
   contents: read
