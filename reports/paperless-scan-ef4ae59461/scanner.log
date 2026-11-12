@@ -1,0 +1,86 @@
+^[[A^[[A^[[A            ^[[A^CERROR <class 'KeyboardInterrupt'>
+2026-10-10 06:21:13,743 Unexpected error: <class 'KeyboardInterrupt'>
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/connection.py", line 239, in _new_conn
+    sock = connection.create_connection(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/util/connection.py", line 85, in create_connection
+    raise err
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/util/connection.py", line 73, in create_connection
+    sock.connect(sa)
+ConnectionRefusedError: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/connectionpool.py", line 793, in urlopen
+    response = self._make_request(
+               ^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/connectionpool.py", line 499, in _make_request
+    conn.request(
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/connection.py", line 567, in request
+    self.endheaders()
+  File "/usr/lib/python3.11/http/client.py", line 1306, in endheaders
+    self._send_output(message_body, encode_chunked=encode_chunked)
+  File "/usr/lib/python3.11/http/client.py", line 1066, in _send_output
+    self.send(msg)
+  File "/usr/lib/python3.11/http/client.py", line 1004, in send
+    self.connect()
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/connection.py", line 398, in connect
+    self.sock = self._new_conn()
+                ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/connection.py", line 254, in _new_conn
+    raise NewConnectionError(
+urllib3.exceptions.NewConnectionError: HTTPConnection(host='localhost', port=36129): Failed to establish a new connection: [Errno 111] Connection refused
+
+The above exception was the direct cause of the following exception:
+
+urllib3.exceptions.ProxyError: ('Unable to connect to proxy', NewConnectionError("HTTPConnection(host='localhost', port=36129): Failed to establish a new connection: [Errno 111] Connection refused"))
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/dist-packages/requests/adapters.py", line 696, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/connectionpool.py", line 847, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/urllib3/util/retry.py", line 555, in increment
+    raise MaxRetryError(_pool, url, reason) from reason  # type: ignore[arg-type]
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+urllib3.exceptions.MaxRetryError: HTTPConnectionPool(host='localhost', port=36129): Max retries exceeded with url: http://zap/JSON/core/view/version/ (Caused by ProxyError('Unable to connect to proxy', NewConnectionError("HTTPConnection(host='localhost', port=36129): Failed to establish a new connection: [Errno 111] Connection refused")))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/zap/zap_common.py", line 318, in wait_for_zap_start
+    version = zap.core.version
+              ^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/zapv2/core.py", line 108, in version
+    return six.next(six.itervalues(self.zap._request(self.zap.base + 'core/view/version/')))
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/zapv2/__init__.py", line 199, in _request
+    data = self._request_api(url, get, method, body)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/zapv2/__init__.py", line 177, in _request_api
+    response = session.request(method, url, params=query, data=body, proxies=self.__proxies, verify=False)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/requests/sessions.py", line 651, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/requests/sessions.py", line 784, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.11/dist-packages/requests/adapters.py", line 723, in send
+    raise ProxyError(e, request=request)
+requests.exceptions.ProxyError: HTTPConnectionPool(host='localhost', port=36129): Max retries exceeded with url: http://zap/JSON/core/view/version/ (Caused by ProxyError('Unable to connect to proxy', NewConnectionError("HTTPConnection(host='localhost', port=36129): Failed to establish a new connection: [Errno 111] Connection refused")))
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/zap/zap-api-scan.py", line 403, in main
+    wait_for_zap_start(zap, timeout * 60)
+  File "/zap/zap_common.py", line 323, in wait_for_zap_start
+    time.sleep(1)
+KeyboardInterrupt

@@ -1,0 +1,10 @@
+{
+  "project": "paperless-scan-591aa3025a",
+  "started": "2026-10-10T06:12:34.243048+00:00",
+  "target": "http://backend:5000",
+  "status": "warnings",
+  "zap_exit_code": 2,
+  "alert_count": 6,
+  "high_risk_count": 0,
+  "exit_code": 0
+}

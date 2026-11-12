@@ -1,0 +1,16 @@
+{
+  "project": "paperless-scan-4aaa150aba",
+  "started": "2026-10-25T13:16:47.374008+00:00",
+  "target": "http://backend:5000",
+  "status": "warnings",
+  "auth_preflight": "passed",
+  "zap_exit_code": 2,
+  "zap_authenticated_access": "passed",
+  "auth_postflight": {
+    "authenticated_after_scan": true,
+    "anonymous_denied": true
+  },
+  "alert_count": 2,
+  "high_risk_count": 0,
+  "exit_code": 0
+}
