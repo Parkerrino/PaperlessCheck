@@ -19,7 +19,14 @@ def app():
 
 @pytest.fixture
 def client(app):
-    with app.test_client() as test_client:
+    with (
+        patch(
+            "auth.store.lookup_session",
+            return_value={"id": 1, "username": "tester", "csrf_token": "test-csrf"},
+        ),
+        app.test_client() as test_client,
+    ):
+        test_client.environ_base["HTTP_X_CSRF_TOKEN"] = "test-csrf"
         yield test_client
 
 

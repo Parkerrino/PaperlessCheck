@@ -1,0 +1,35 @@
+name: Local API security scan (ZAP prototype)
+
+# Scan only the disposable stack; no production credentials or deployment access.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'security/**'
+      - 'scripts/security_scan.py'
+      - 'compose.security.yml'
+      - '.github/workflows/ethicalcheck.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Scan disposable API
+        run: python scripts/security_scan.py
+      - name: Preserve scan reports and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: api-security-${{ github.run_id }}-${{ github.run_attempt }}
+          path: reports/
+          if-no-files-found: error
+          retention-days: 14
